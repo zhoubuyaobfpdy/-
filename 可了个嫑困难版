@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>可了个嫑·困难版</title>
+<style>
+body { text-align: center; background-color: #f0f0f0; margin: 0; }
+#game-box {
+  position: relative;
+  width: 400px;
+  height: 500px;
+  margin: 20px auto;
+  background: #ddd;
+  border-radius: 15px;
+}
+.card {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  background: white;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.card img { width: 100%; height: 100%; }
+.covered { filter: brightness(0.5); cursor: not-allowed; }
+
+#slot {
+  width: 380px;
+  height: 80px;
+  background: #333;
+  margin: 10px auto;
+  display: flex;
+  align-items: center;
+}
+.slot-img {
+  width: 45px;
+  height: 45px;
+  margin: 2px;
+}
+</style>
+</head>
+
+<body>
+<h2>周了个深·困难版</h2>
+
+<div id="game-box"></div>
+<div id="slot"></div>
+
+<script>
+const gameBox = document.getElementById('game-box');
+const slotBox = document.getElementById('slot');
+
+const cardFiles = ['a.jpg','b.jpg','c.jpg','d.jpg','e.jpg','f.jpg','g.jpg','h.jpg','i.jpg'];
+
+let cards = [];
+let slot = [];
+
+function init() {
+    let temp = [];
+
+    // 每种6张（更难）
+    cardFiles.forEach(file => {
+        for(let i=0; i<6; i++) temp.push(file);
+    });
+
+    temp.sort(() => Math.random() - 0.5);
+
+    cards = temp.map((img, i) => ({
+        id: i,
+        img: img,
+        x: Math.random() * 320,
+        y: Math.random() * 420,
+        layer: Math.floor(Math.random() * 4), // 多层
+        state: 0
+    }));
+
+    render();
+}
+
+function isCovered(c1) {
+    for(let c2 of cards) {
+        if(c2.id === c1.id || c2.state !== 0) continue;
+
+        // 更高层 & 重叠
+        if(c2.layer > c1.layer &&
+           c2.x < c1.x + 60 &&
+           c2.x + 60 > c1.x &&
+           c2.y < c1.y + 60 &&
+           c2.y + 60 > c1.y) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function render() {
+    gameBox.innerHTML = '';
+
+    cards.forEach(c => {
+        if(c.state !== 0) return;
+
+        const covered = isCovered(c);
+
+        const div = document.createElement('div');
+        div.className = 'card' + (covered ? ' covered' : '');
+        div.style.left = c.x + 'px';
+        div.style.top = c.y + 'px';
+        div.style.zIndex = c.layer;
+
+        div.innerHTML = `<img src="images111/${c.img}">`;
+
+        div.onclick = () => {
+            if(!covered && slot.length < 7) {
+                c.state = 1;
+                slot.push(c.img);
+
+                checkMatch();
+                render();
+                checkEnd();
+            }
+        };
+
+        gameBox.appendChild(div);
+    });
+
+    slotBox.innerHTML = slot.map(img =>
+        `<img class="slot-img" src="images111/${img}">`
+    ).join('');
+}
+
+function checkMatch() {
+    const count = {};
+    slot.forEach(i => count[i] = (count[i] || 0) + 1);
+
+    for(let img in count) {
+        if(count[img] >= 3) {
+            slot = slot.filter(i => i !== img);
+            cards.forEach(c => {
+                if(c.img === img && c.state === 1) c.state = 2;
+            });
+        }
+    }
+}
+
+function checkEnd() {
+    if(slot.length >= 7) {
+        alert("可可跑走啦！再试一次吧！");
+        location.reload();
+    }
+    if(cards.every(c => c.state === 2)) {
+        alert("成功抓住可可！一起做巧克力吧！");
+        location.reload();
+    }
+}
+
+init();
+</script>
+</body>
+</html>
