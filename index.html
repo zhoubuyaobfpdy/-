@@ -4,7 +4,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>可了个嫑·困难版</title>
 
 <style>
 
@@ -28,7 +27,7 @@ body::before {
   z-index: -1;
 }
 
-/* ===== 核心容器（不会超过背景）===== */
+/* ===== 核心容器 ===== */
 #phone {
   width: min(90vw, 420px);
   aspect-ratio: 9/16;
@@ -39,18 +38,16 @@ body::before {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
 
   padding: 10px;
 }
 
-/* 标题 */
 h2 {
   color: white;
   margin: 5px;
 }
 
-/* ===== 控制（手机按钮 / 电脑滑条）===== */
+/* ===== 控制 ===== */
 #controls-desktop {
   color: white;
   font-size: 12px;
@@ -76,19 +73,21 @@ button {
   background: rgba(255,255,255,0.2);
 }
 
-/* ===== 游戏区域 ===== */
+/* ===== 游戏区域（🔥这里改短了）===== */
 #game-box {
   position: relative;
   width: 100%;
-  flex: 1;
 
-  background: rgba(255,255,255,0.1);
+  /* 原来 flex:1 → 改成更短 */
+  flex: 0.75;
+
+  background: rgba(255,255,255,0.08); /* 也稍微更淡一点 */
   border-radius: 15px;
 
   overflow: hidden;
 }
 
-/* 卡牌 */
+/* ===== 卡牌 ===== */
 .card {
   position: absolute;
   width: 60px;
@@ -97,12 +96,25 @@ button {
   border-radius: 10px;
   overflow: hidden;
   background: #a67c52;
+
+  /* ⭐ 关键：让动画更丝滑 */
+  transition: transform 0.18s cubic-bezier(.2,.9,.2,1);
 }
 
+/* ⭐ hover 弹性放大效果 */
+.card:hover {
+  transform: scale(1.12);
+  z-index: 999;
+}
+
+/* 图片 */
 .card img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+
+  /* 防止放大太“死板” */
+  transition: transform 0.18s cubic-bezier(.2,.9,.2,1);
 }
 
 /* 遮挡 */
@@ -136,7 +148,6 @@ button {
 
 <body onclick="startMusic()">
 
-<!-- 音频（预加载解决延迟） -->
 <audio id="bgm" src="music.mp3" loop preload="auto"></audio>
 <audio id="sfx1" src="soundeffect_Dadadada.mp3" preload="auto"></audio>
 <audio id="sfx2" src="soundeffectdrrro.mp3" preload="auto"></audio>
@@ -145,7 +156,6 @@ button {
 
 <h2>可了个嫑·困难版</h2>
 
-<!-- 电脑 -->
 <div id="controls-desktop">
 🎵 音乐
 <input type="range" min="0" max="1" step="0.01"
@@ -158,7 +168,6 @@ value="0.4" oninput="bgm.volume=this.value">
 value="0.6" oninput="sfxVolume=this.value">
 </div>
 
-<!-- 手机 -->
 <div id="controls-mobile">
 <button onclick="toggleMusic()">🎵</button>
 <button onclick="toggleSfx()">🔊</button>
@@ -170,6 +179,8 @@ value="0.6" oninput="sfxVolume=this.value">
 </div>
 
 <script>
+
+/* JS 不动 */
 
 const gameBox = document.getElementById('game-box');
 const slotBox = document.getElementById('slot');
@@ -186,13 +197,10 @@ let sfxOn = true;
 let cards = [];
 let slot = [];
 
-/* ===== 音乐 ===== */
 function startMusic(){
   if(musicStarted) return;
-
   bgm.volume = 0.4;
   bgm.play().catch(()=>{});
-
   musicStarted = true;
 }
 
@@ -205,22 +213,19 @@ function toggleSfx(){
   sfxOn = !sfxOn;
 }
 
-/* ===== 音效（无延迟版）===== */
 function playSfx(){
   if(!sfxOn) return;
-
   const s = Math.random() < 0.5 ? sfx1 : sfx2;
   s.currentTime = 0;
   s.volume = sfxVolume;
   s.play().catch(()=>{});
 }
 
-/* ===== 初始化（关键修复不卡）===== */
 const cardFiles = ['a.jpg','b.jpg','c.jpg','d.jpg','e.jpg','f.jpg','g.jpg','h.jpg','i.jpg'];
 
 function init(){
 
-  setTimeout(()=>{  // ⭐ 等DOM渲染完再算尺寸
+  setTimeout(()=>{
 
     let temp = [];
 
@@ -244,10 +249,9 @@ function init(){
 
     render();
 
-  },100); // ⭐ 防止卡死
+  },100);
 }
 
-/* ===== 遮挡 ===== */
 function isCovered(c1){
   for(let c2 of cards){
     if(c2.id===c1.id || c2.state!==0) continue;
@@ -261,7 +265,6 @@ function isCovered(c1){
   return false;
 }
 
-/* ===== 渲染 ===== */
 function render(){
   gameBox.innerHTML='';
 
@@ -303,7 +306,6 @@ function render(){
   ).join('');
 }
 
-/* ===== 消除 ===== */
 function checkMatch(){
   const count={};
 
@@ -322,9 +324,7 @@ function checkMatch(){
   }
 }
 
-/* ===== 结束 ===== */
 function checkEnd(){
-
   if(slot.length>=7){
     setTimeout(()=>{
       alert("啊哦...可可跑走啦！再试一次吧！");
