@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 
@@ -39,25 +38,27 @@ body::before {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
 }
 
-/* 标题 */
 h2 {
   color: white;
-  text-shadow: 0 2px 6px rgba(0,0,0,0.5);
 }
 
-/* 游戏区 */
+/* 控制区 */
+#controls {
+  color: white;
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+
 #game-box {
   position: relative;
   width: 320px;
   height: 420px;
 
   background: rgba(255,255,255,0.15);
-  backdrop-filter: blur(6px);
-
   border-radius: 20px;
-  border: 2px solid rgba(255,255,255,0.3);
 }
 
 /* 卡牌 */
@@ -65,14 +66,7 @@ h2 {
   position: absolute;
   width: 60px;
   height: 60px;
-
-  background: linear-gradient(145deg, #d2b48c, #a67c52);
   border-radius: 10px;
-  cursor: pointer;
-
-  box-shadow: 4px 4px 8px rgba(0,0,0,0.3),
-              -2px -2px 6px rgba(255,255,255,0.3);
-
   overflow: hidden;
 }
 
@@ -80,16 +74,6 @@ h2 {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  display: block;
-}
-
-.card:active {
-  transform: scale(0.9);
-}
-
-.covered {
-  filter: brightness(0.5);
-  cursor: not-allowed;
 }
 
 /* 槽位 */
@@ -107,32 +91,35 @@ h2 {
   height: 45px;
   margin: 2px;
 }
-
-/* 控制 */
-#controls {
-  color: white;
-  font-size: 12px;
-  margin-bottom: 8px;
-}
 </style>
 </head>
 
 <body onclick="startMusic()">
 
-<!-- 🎵 音频（关键：预加载 + 复用） -->
-<audio id="bgm" src="music.mp3" loop preload="auto"></audio>
-
-<audio id="sfx1" src="soundeffect_Dadadada.mp3" preload="auto"></audio>
-<audio id="sfx2" src="soundeffectdrrro.mp3" preload="auto"></audio>
+<!-- 音频 -->
+<audio id="bgm" src="music.mp3" loop></audio>
+<audio id="sfx1" src="soundeffect_Dadadada.mp3"></audio>
+<audio id="sfx2" src="soundeffectdrrro.mp3"></audio>
 
 <div id="phone">
-  <h2>可了个嫑·困难版</h2>
 
-  <div id="game-box"></div>
-  <div id="slot"></div>
+<h2>可了个嫑·困难版</h2>
+
+<div id="controls">
+🎵 音乐：
+<input type="range" min="0" max="1" step="0.01" value="0.4" oninput="bgm.volume=this.value">
+<br>
+🔊 音效：
+<input type="range" min="0" max="1" step="0.01" value="0.6" oninput="sfxVolume=this.value">
+</div>
+
+<div id="game-box"></div>
+<div id="slot"></div>
+
 </div>
 
 <script>
+
 const gameBox = document.getElementById('game-box');
 const slotBox = document.getElementById('slot');
 
@@ -141,136 +128,126 @@ const sfx1 = document.getElementById('sfx1');
 const sfx2 = document.getElementById('sfx2');
 
 let musicStarted = false;
+let sfxVolume = 0.6;
 
-/* 🎵 音乐启动（必须用户点击触发） */
-function startMusic() {
-    if (musicStarted) return;
-    bgm.volume = 0.4;
-    bgm.play().catch(()=>{});
-    musicStarted = true;
+/* 🎵 音乐启动 */
+function startMusic(){
+  if(musicStarted) return;
+  bgm.volume = 0.4;
+  bgm.play().catch(()=>{});
+  musicStarted = true;
 }
 
-/* 🔊 超关键：无延迟音效播放 */
-function playSfx() {
-    const sound = Math.random() < 0.5 ? sfx1 : sfx2;
-    sound.currentTime = 0;   // ⭐核心：重置
-    sound.volume = 0.6;
-    sound.play().catch(()=>{});
+/* 🔊 随机音效 */
+function playSfx(){
+  const s = Math.random() < 0.5 ? sfx1 : sfx2;
+  s.currentTime = 0;
+  s.volume = sfxVolume;
+  s.play().catch(()=>{});
 }
 
-/* 🎮 卡牌数据 */
+/* 卡牌数据 */
 const cardFiles = ['a.jpg','b.jpg','c.jpg','d.jpg','e.jpg','f.jpg','g.jpg','h.jpg','i.jpg'];
 
 let cards = [];
 let slot = [];
 
-/* 初始化 */
-function init() {
-    let temp = [];
+function init(){
+  let temp = [];
 
-    cardFiles.forEach(file => {
-        for(let i=0; i<6; i++) temp.push(file);
-    });
+  cardFiles.forEach(f=>{
+    for(let i=0;i<6;i++) temp.push(f);
+  });
 
-    temp.sort(() => Math.random() - 0.5);
+  temp.sort(()=>Math.random()-0.5);
 
-    cards = temp.map((img, i) => ({
-        id: i,
-        img,
-        x: Math.random() * (gameBox.clientWidth - 60),
-        y: Math.random() * (gameBox.clientHeight - 60),
-        layer: Math.floor(Math.random() * 4),
-        state: 0
-    }));
+  cards = temp.map((img,i)=>({
+    id:i,
+    img,
+    x:Math.random()*260,
+    y:Math.random()*360,
+    layer:Math.floor(Math.random()*4),
+    state:0
+  }));
 
-    render();
+  render();
 }
 
-/* 是否被盖住 */
-function isCovered(c1) {
-    for(let c2 of cards) {
-        if(c2.id === c1.id || c2.state !== 0) continue;
+function render(){
+  gameBox.innerHTML='';
 
-        if(c2.layer > c1.layer &&
-           c2.x < c1.x + 60 &&
-           c2.x + 60 > c1.x &&
-           c2.y < c1.y + 60 &&
-           c2.y + 60 > c1.y) {
-            return true;
-        }
-    }
-    return false;
-}
+  cards.forEach(c=>{
+    if(c.state!==0) return;
 
-/* 渲染 */
-function render() {
-    gameBox.innerHTML = '';
+    const div=document.createElement('div');
+    div.className='card';
+    div.style.left=c.x+'px';
+    div.style.top=c.y+'px';
+    div.style.zIndex=c.layer;
 
-    cards.forEach(c => {
-        if(c.state !== 0) return;
+    div.innerHTML=`<img src="images111/${c.img}">`;
 
-        const covered = isCovered(c);
+    div.onclick=()=>{
 
-        const div = document.createElement('div');
-        div.className = 'card' + (covered ? ' covered' : '');
-        div.style.left = c.x + 'px';
-        div.style.top = c.y + 'px';
-        div.style.zIndex = c.layer;
+      startMusic();
+      playSfx();
 
-        div.innerHTML = `<img src="images111/${c.img}">`;
+      if(slot.length<7){
+        c.state=1;
+        slot.push(c.img);
 
-        div.onclick = () => {
+        checkMatch();
+        render();
+        checkEnd();
+      }
+    };
 
-            startMusic();
-            playSfx();   // ⭐音效
+    gameBox.appendChild(div);
+  });
 
-            if(!covered && slot.length < 7) {
-                c.state = 1;
-                slot.push(c.img);
-
-                checkMatch();
-                render();
-                checkEnd();
-            }
-        };
-
-        gameBox.appendChild(div);
-    });
-
-    slotBox.innerHTML = slot.map(img =>
-        `<img class="slot-img" src="images111/${img}">`
-    ).join('');
+  slotBox.innerHTML = slot.map(i=>`
+    <img class="slot-img" src="images111/${i}">
+  `).join('');
 }
 
 /* 消除 */
-function checkMatch() {
-    const count = {};
-    slot.forEach(i => count[i] = (count[i] || 0) + 1);
+function checkMatch(){
+  const count={};
 
-    for(let img in count) {
-        if(count[img] >= 3) {
-            slot = slot.filter(i => i !== img);
-            cards.forEach(c => {
-                if(c.img === img && c.state === 1) c.state = 2;
-            });
-        }
+  slot.forEach(i=>{
+    count[i]=(count[i]||0)+1;
+  });
+
+  for(let img in count){
+    if(count[img]>=3){
+      slot=slot.filter(i=>i!==img);
+      cards.forEach(c=>{
+        if(c.img===img && c.state===1) c.state=2;
+      });
     }
+  }
 }
 
-/* 结束 */
+/* 🎯 结束提示（你要的版本） */
+function checkEnd(){
 
-  function checkEnd() {
-    if(slot.length >= 7) {
-        alert("啊哦...可可跑走啦！再试一次吧！");
-        location.reload();
-    }
-    if(cards.every(c => c.state === 2)) {
-        alert("你成功抓住了可可！一起做巧克力吧！");
-        location.reload();
-    }
+  if(slot.length>=7){
+    setTimeout(()=>{
+      alert("啊哦...可可跑走啦！再试一次吧！");
+      location.reload();
+    },200);
+  }
+
+  if(cards.every(c=>c.state===2)){
+    setTimeout(()=>{
+      alert("你成功抓住了可可！一起做巧克力吧！");
+      location.reload();
+    },200);
+  }
 }
 
 init();
+
 </script>
 
 </body>
