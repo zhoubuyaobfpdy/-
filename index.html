@@ -4,10 +4,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>可了个嫑·困难版</title>
 
 <style>
 
-/* ===== 背景（严格不被覆盖）===== */
+/* ===== 背景 ===== */
 body {
   margin: 0;
   height: 100vh;
@@ -27,7 +28,7 @@ body::before {
   z-index: -1;
 }
 
-/* ===== 核心容器 ===== */
+/* ===== 容器 ===== */
 #phone {
   width: min(90vw, 420px);
   aspect-ratio: 9/16;
@@ -73,21 +74,21 @@ button {
   background: rgba(255,255,255,0.2);
 }
 
-/* ===== 游戏区域（🔥这里改短了）===== */
+/* ===== 游戏区域（✔修正高度）===== */
 #game-box {
   position: relative;
   width: 100%;
 
-  /* 原来 flex:1 → 改成更短 */
-  flex: 0.75;
+  /* ⭐ 关键：不再撑太长 */
+  height: 60%;
 
-  background: rgba(255,255,255,0.08); /* 也稍微更淡一点 */
+  background: rgba(255,255,255,0.08);
   border-radius: 15px;
 
   overflow: hidden;
 }
 
-/* ===== 卡牌 ===== */
+/* ===== 卡牌（✔手感优化重点）===== */
 .card {
   position: absolute;
   width: 60px;
@@ -97,14 +98,22 @@ button {
   overflow: hidden;
   background: #a67c52;
 
-  /* ⭐ 关键：让动画更丝滑 */
-  transition: transform 0.18s cubic-bezier(.2,.9,.2,1);
+  cursor: pointer;
+
+  /* ⭐ 更“跟手”的动画 */
+  transition: transform 0.08s ease, filter 0.08s ease;
 }
 
-/* ⭐ hover 弹性放大效果 */
+/* ⭐ hover：只“轻轻抬一下”，不放大 */
 .card:hover {
-  transform: scale(1.12);
-  z-index: 999;
+  transform: translateY(-2px);
+  filter: brightness(1.08);
+  z-index: 10;
+}
+
+/* ⭐ 点击瞬间：按压感（很关键） */
+.card:active {
+  transform: scale(0.92);
 }
 
 /* 图片 */
@@ -112,15 +121,13 @@ button {
   width: 100%;
   height: 100%;
   object-fit: cover;
-
-  /* 防止放大太“死板” */
-  transition: transform 0.18s cubic-bezier(.2,.9,.2,1);
 }
 
-/* 遮挡 */
+/* ===== 遮挡（提高难度）===== */
 .covered {
   pointer-events: none;
-  filter: brightness(0.5);
+  filter: brightness(0.35) saturate(0.7);
+  transform: scale(0.98);
 }
 
 /* ===== 槽 ===== */
@@ -180,8 +187,6 @@ value="0.6" oninput="sfxVolume=this.value">
 
 <script>
 
-/* JS 不动 */
-
 const gameBox = document.getElementById('game-box');
 const slotBox = document.getElementById('slot');
 
@@ -221,6 +226,7 @@ function playSfx(){
   s.play().catch(()=>{});
 }
 
+/* ===== 初始化 ===== */
 const cardFiles = ['a.jpg','b.jpg','c.jpg','d.jpg','e.jpg','f.jpg','g.jpg','h.jpg','i.jpg'];
 
 function init(){
@@ -252,6 +258,7 @@ function init(){
   },100);
 }
 
+/* ===== 遮挡判断 ===== */
 function isCovered(c1){
   for(let c2 of cards){
     if(c2.id===c1.id || c2.state!==0) continue;
@@ -265,6 +272,7 @@ function isCovered(c1){
   return false;
 }
 
+/* ===== 渲染 ===== */
 function render(){
   gameBox.innerHTML='';
 
@@ -306,6 +314,7 @@ function render(){
   ).join('');
 }
 
+/* ===== 消除逻辑 ===== */
 function checkMatch(){
   const count={};
 
@@ -324,7 +333,9 @@ function checkMatch(){
   }
 }
 
+/* ===== 结束 ===== */
 function checkEnd(){
+
   if(slot.length>=7){
     setTimeout(()=>{
       alert("啊哦...可可跑走啦！再试一次吧！");
