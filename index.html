@@ -52,6 +52,21 @@ h2 {
   text-shadow: 0 2px 6px rgba(0,0,0,0.5);
 }
 
+/* 控制按钮 */
+#controls {
+  margin-bottom: 10px;
+}
+
+#controls button {
+  margin: 0 5px;
+  padding: 5px 10px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  background: rgba(255,255,255,0.2);
+  color: white;
+}
+
 /* 游戏区 */
 #game-box {
   position: relative;
@@ -89,7 +104,6 @@ h2 {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center;
   display: block;
 }
 
@@ -132,14 +146,17 @@ h2 {
 
 <body onclick="startMusic()">
 
-<!-- 🎵 音频系统 -->
+<!-- 🎵 音频 -->
 <audio id="bgm" src="music.mp3" loop></audio>
-
-<audio id="sfx1" src="soundeffect_Dadadada.mp3"></audio>
-<audio id="sfx2" src="soundeffectdrrro.mp3"></audio>
 
 <div id="phone">
   <h2>可了个嫑·困难版</h2>
+
+  <div id="controls">
+    <button onclick="toggleMusic()">🎵 音乐</button>
+    <button onclick="toggleSfx()">🔊 音效</button>
+  </div>
+
   <div id="game-box"></div>
   <div id="slot"></div>
 </div>
@@ -147,14 +164,12 @@ h2 {
 <script>
 const gameBox = document.getElementById('game-box');
 const slotBox = document.getElementById('slot');
-
 const bgm = document.getElementById('bgm');
-const sfx1 = document.getElementById('sfx1');
-const sfx2 = document.getElementById('sfx2');
 
 let musicStarted = false;
+let musicMuted = false;
+let sfxMuted = false;
 
-/* 🎵 点击解锁音乐 */
 function startMusic() {
     if (musicStarted) return;
 
@@ -164,7 +179,23 @@ function startMusic() {
     musicStarted = true;
 }
 
-/* 🎮 卡牌逻辑 */
+/* 🎵 音乐开关 */
+function toggleMusic() {
+    musicMuted = !musicMuted;
+
+    if (musicMuted) {
+        bgm.pause();
+    } else {
+        bgm.play().catch(()=>{});
+    }
+}
+
+/* 🔊 音效开关 */
+function toggleSfx() {
+    sfxMuted = !sfxMuted;
+}
+
+/* 🎮 卡牌 */
 const cardFiles = ['a.jpg','b.jpg','c.jpg','d.jpg','e.jpg','f.jpg','g.jpg','h.jpg','i.jpg'];
 
 let cards = [];
@@ -181,7 +212,7 @@ function init() {
 
     cards = temp.map((img, i) => ({
         id: i,
-        img: img,
+        img,
         x: Math.random() * (gameBox.clientWidth - 60),
         y: Math.random() * (gameBox.clientHeight - 60),
         layer: Math.floor(Math.random() * 4),
@@ -224,16 +255,18 @@ function render() {
 
         div.onclick = () => {
 
-            startMusic(); // 顺便启动音乐
+            startMusic();
 
-            /* 🎲 随机音效 */
-const soundFile = Math.random() < 0.5
-  ? "soundeffect_Dadadada.mp3"
-  : "soundeffectdrrro.mp3";
+            /* 🔊 音效 */
+            if (!sfxMuted) {
+                const file = Math.random() < 0.5
+                    ? "soundeffect_Dadadada.mp3"
+                    : "soundeffectdrrro.mp3";
 
-const sound = new Audio(soundFile);
-sound.volume = 0.6;
-sound.play();
+                const sound = new Audio(file);
+                sound.volume = 0.6;
+                sound.play().catch(()=>{});
+            }
 
             if(!covered && slot.length < 7) {
                 c.state = 1;
@@ -269,11 +302,11 @@ function checkMatch() {
 
 function checkEnd() {
     if(slot.length >= 7) {
-        alert("可可跑走啦！再试一次吧！");
+        alert("可可跑走啦！");
         location.reload();
     }
     if(cards.every(c => c.state === 2)) {
-        alert("成功抓住可可！一起做巧克力吧！");
+        alert("成功！");
         location.reload();
     }
 }
