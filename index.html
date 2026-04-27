@@ -4,7 +4,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>可了个嫑</title>
 
 <style>
 
@@ -52,8 +51,13 @@ body::before {
   transition: 0.2s;
 }
 
-.cover-btn:hover { transform: scale(1.08); }
-.cover-btn:active { transform: scale(0.92); }
+.cover-btn:hover {
+  transform: scale(1.08);
+}
+
+.cover-btn:active {
+  transform: scale(0.92);
+}
 
 /* ===== 主体 ===== */
 #phone {
@@ -67,8 +71,8 @@ body::before {
   gap: 8px;
 }
 
-.level-title {
-  color: #fff;
+#title {
+  color: white;
   font-size: 18px;
   font-weight: bold;
 }
@@ -115,18 +119,21 @@ input[type="range"] {
   position: absolute;
   width: 60px;
   height: 60px;
-
   border-radius: 10px;
-  cursor: pointer;
-
+  overflow: hidden;
   background: #a67c52;
-
-  transition: 0.08s;
+  cursor: pointer;
+  transition: transform 0.1s ease;
   box-shadow: 0 4px 8px rgba(0,0,0,0.25);
 }
 
-.card:hover { transform: translateY(-2px); }
-.card:active { transform: scale(0.9); }
+.card:hover {
+  transform: translateY(-3px) scale(1.03);
+}
+
+.card:active {
+  transform: scale(0.92);
+}
 
 .card img {
   width: 100%;
@@ -138,7 +145,6 @@ input[type="range"] {
 .covered {
   pointer-events: none;
   filter: brightness(0.35);
-  transform: scale(0.98);
 }
 
 /* ===== 槽 ===== */
@@ -164,25 +170,24 @@ input[type="range"] {
 
 <body onclick="startMusic()" ontouchstart="startMusic()">
 
+<audio id="bgm" src="music.mp3" loop></audio>
+
 <!-- ===== 封面 ===== -->
 <div id="cover">
   <div style="font-size:28px;">可了个嫑</div>
-
-  <button class="cover-btn" onclick="startLevel(1)">🍳 第一关</button>
-  <button class="cover-btn" onclick="startLevel(2)">🍫 第二关</button>
+  <button class="cover-btn" onclick="startLevel(1)">🍳 第一关（简单）</button>
+  <button class="cover-btn" onclick="startLevel(2)">🍫 第二关（困难）</button>
 </div>
-
-<audio id="bgm" src="music.mp3" loop></audio>
 
 <div id="phone">
 
-<div class="level-title" id="title">未开始</div>
+<div id="title">未开始</div>
 
 <div id="bar"><div id="bar-inner"></div></div>
 
 <div id="controls">
 🎵 <input type="range" min="0" max="1" step="0.01" value="0.4" oninput="bgm.volume=this.value">
-🔊 <input type="range" min="0" max="1" step="0.01" value="0.6">
+🔊 <input type="range" min="0" max="1" step="0.01" value="0.6" oninput="sfxVolume=this.value">
 </div>
 
 <div id="game-box"></div>
@@ -192,22 +197,25 @@ input[type="range"] {
 
 <script>
 
-const cover = document.getElementById('cover');
-const title = document.getElementById('title');
-const bar = document.getElementById('bar-inner');
 const gameBox = document.getElementById('game-box');
 const slotBox = document.getElementById('slot');
+const bar = document.getElementById('bar-inner');
+const title = document.getElementById('title');
+const cover = document.getElementById('cover');
 const bgm = document.getElementById('bgm');
 
-let level = 0;
-let time = 0;
+let level = 1;
+let time = 120;
 let timer = null;
 
-let cards = [];
 let slot = [];
+let cards = [];
+
+let sfxVolume = 0.6;
 
 /* ===== 音乐 ===== */
 function startMusic(){
+  bgm.volume = 0.4;
   bgm.play().catch(()=>{});
 }
 
@@ -238,30 +246,31 @@ function startTimer(){
     bar.style.width = (time/120)*100 + "%";
 
     if(time <= 0){
-      failGame();
+      fail();
     }
 
   },1000);
 }
 
 /* ===== 失败 ===== */
-function failGame(){
+function fail(){
   clearInterval(timer);
   alert("啊哦...可可跑走啦！再试一次吧！");
   location.reload();
 }
 
-/* ===== 生成 ===== */
+/* ===== 生成（难度分层核心）===== */
 function generate(){
 
   const files = ['a.jpg','b.jpg','c.jpg','d.jpg','e.jpg','f.jpg','g.jpg','h.jpg','i.jpg'];
 
   let temp = [];
 
-  let count = level === 1 ? 18 : 30;
+  let groups = level === 1 ? 4 : 12;
 
-  for(let i=0;i<count;i++){
-    temp.push(files[Math.floor(Math.random()*files.length)]);
+  for(let i=0;i<groups;i++){
+    let img = files[Math.floor(Math.random()*files.length)];
+    temp.push(img,img,img);
   }
 
   temp.sort(()=>Math.random()-0.5);
@@ -270,11 +279,15 @@ function generate(){
   const maxY = gameBox.clientHeight - 60;
 
   cards = temp.map((img,i)=>({
+
     id:i,
     img,
     x:Math.random()*maxX,
     y:Math.random()*maxY,
-    layer:Math.floor(Math.random()*(level===1?3:6)),
+    layer: level === 1
+      ? Math.floor(Math.random()*2)
+      : Math.floor(Math.random()*8),
+
     state:0
   }));
 
@@ -287,8 +300,8 @@ function isCovered(c1){
     c2.id !== c1.id &&
     c2.state === 0 &&
     c2.layer > c1.layer &&
-    Math.abs(c2.x - c1.x) < 55 &&
-    Math.abs(c2.y - c1.y) < 55
+    Math.abs(c2.x - c1.x) < (level===1?45:60) &&
+    Math.abs(c2.y - c1.y) < (level===1?45:60)
   );
 }
 
@@ -318,9 +331,8 @@ function render(){
       c.state = 1;
       slot.push(c.img);
 
-      /* ===== 🚨 7槽失败修复 ===== */
       if(slot.length > 7){
-        failGame();
+        fail();
         return;
       }
 
@@ -332,10 +344,12 @@ function render(){
     gameBox.appendChild(div);
   });
 
-  slotBox.innerHTML = slot.map(i=>`<img class="slot-img" src="images111/${i}">`).join("");
+  slotBox.innerHTML = slot.map(i=>
+    `<img class="slot-img" src="images111/${i}">`
+  ).join("");
 }
 
-/* ===== 🚨 三消修复（严格3个才消）===== */
+/* ===== 三消 ===== */
 function checkMatch(){
 
   let count = {};
@@ -366,12 +380,12 @@ function checkWin(){
     clearInterval(timer);
 
     if(level === 1){
-      setTimeout(()=>startLevel(2),500);
+      setTimeout(()=>startLevel(2),600);
     } else {
       setTimeout(()=>{
         alert("你成功抓住了可可！一起做巧克力吧！");
         location.reload();
-      },500);
+      },600);
     }
   }
 }
