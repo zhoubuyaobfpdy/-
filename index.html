@@ -4,6 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>可了个嫑</title>
 
 <style>
 
@@ -27,7 +28,39 @@ body::before {
   z-index: -1;
 }
 
-/* ===== 外层容器（⭐关键修复：不再拉很长）===== */
+/* ===== 封面 ===== */
+#cover {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+  color: white;
+}
+
+#startBtn {
+  padding: 12px 24px;
+  margin-top: 20px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  background: #7a4a2d;
+  color: white;
+  transition: 0.2s;
+}
+
+#startBtn:hover {
+  transform: scale(1.08);
+}
+
+#startBtn:active {
+  transform: scale(0.92);
+}
+
+/* ===== 主容器 ===== */
 #phone {
   width: min(90vw, 420px);
   background: rgba(0,0,0,0.35);
@@ -38,49 +71,36 @@ body::before {
   align-items: center;
 
   padding: 10px;
-  box-sizing: border-box;
-
   gap: 8px;
 }
 
-/* ===== 控制区 ===== */
-#controls-desktop {
-  color: white;
-  font-size: 12px;
-  width: 90%;
-}
-
-#controls-mobile {
-  display: none;
-  gap: 8px;
-}
-
-@media (max-width: 768px) {
-  #controls-desktop { display: none; }
-  #controls-mobile { display: flex; }
-}
-
-button {
-  flex: 1;
-  padding: 8px;
-  border-radius: 10px;
-  border: none;
-  color: white;
+/* ===== 进度条 ===== */
+#bar {
+  width: 100%;
+  height: 10px;
   background: rgba(255,255,255,0.2);
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+#bar-inner {
+  height: 100%;
+  width: 100%;
+  background: #c08a5b;
+  transition: width 1s linear;
 }
 
 /* ===== 游戏区域 ===== */
 #game-box {
   position: relative;
   width: 100%;
-  height: 320px; /* ⭐稳定高度 */
+  height: 320px;
   background: rgba(255,255,255,0.08);
   border-radius: 15px;
   overflow: hidden;
-  touch-action: manipulation;
 }
 
-/* ===== 卡牌（手感优化但不降低难度）===== */
+/* ===== 卡牌（重点升级）===== */
 .card {
   position: absolute;
   width: 60px;
@@ -92,19 +112,18 @@ button {
 
   cursor: pointer;
 
-  transition: transform 0.08s ease, filter 0.08s ease;
+  transition: 0.08s;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.25);
 }
 
-/* hover：只轻微抬起，不放大 */
 .card:hover {
   transform: translateY(-2px);
-  filter: brightness(1.08);
-  z-index: 10;
+  filter: brightness(1.1);
 }
 
-/* 点击：压下去反馈 */
 .card:active {
-  transform: scale(0.92);
+  transform: scale(0.9);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
 }
 
 .card img {
@@ -113,10 +132,10 @@ button {
   object-fit: cover;
 }
 
-/* 遮挡（提高难度） */
+/* 遮挡 */
 .covered {
   pointer-events: none;
-  filter: brightness(0.35) saturate(0.7);
+  filter: brightness(0.35);
   transform: scale(0.98);
 }
 
@@ -124,11 +143,9 @@ button {
 #slot {
   width: 100%;
   height: 80px;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   background: rgba(20,15,10,0.9);
   border-radius: 12px;
 }
@@ -140,34 +157,43 @@ button {
   border-radius: 8px;
 }
 
+/* ===== 音量滑条棕色 ===== */
+input[type="range"] {
+  accent-color: #8b5e3c;
+}
+
+/* ===== 控制 ===== */
+#controls {
+  color: white;
+  font-size: 12px;
+  width: 90%;
+}
+
 </style>
 </head>
 
 <body onclick="startMusic()" ontouchstart="startMusic()">
 
-<!-- ⭐ 音频（稳定加载） -->
-<audio id="bgm" src="music.mp3" loop preload="auto" playsinline></audio>
-<audio id="sfx1" src="soundeffect_Dadadada.mp3" preload="auto"></audio>
-<audio id="sfx2" src="soundeffectdrrro.mp3" preload="auto"></audio>
+<!-- ===== 封面 ===== -->
+<div id="cover">
+  <h1>可了个嫑</h1>
+  <button id="startBtn" onclick="startGame()">开始游戏</button>
+</div>
+
+<audio id="bgm" src="music.mp3" loop preload="auto"></audio>
+<audio id="sfx1" src="soundeffect_Dadadada.mp3"></audio>
+<audio id="sfx2" src="soundeffectdrrro.mp3"></audio>
 
 <div id="phone">
 
-<div id="controls-desktop">
-🎵 音乐
-<input type="range" min="0" max="1" step="0.01"
-value="0.4" oninput="bgm.volume=this.value">
-
-<br>
-
-🔊 音效
-<input type="range" min="0" max="1" step="0.01"
-value="0.6" oninput="sfxVolume=this.value">
+<!-- 控制 -->
+<div id="controls">
+🎵 <input type="range" min="0" max="1" step="0.01" value="0.4" oninput="bgm.volume=this.value">
+🔊 <input type="range" min="0" max="1" step="0.01" value="0.6" oninput="sfxVolume=this.value">
 </div>
 
-<div id="controls-mobile">
-<button onclick="toggleMusic()">🎵</button>
-<button onclick="toggleSfx()">🔊</button>
-</div>
+<!-- 进度条 -->
+<div id="bar"><div id="bar-inner"></div></div>
 
 <div id="game-box"></div>
 <div id="slot"></div>
@@ -178,91 +204,77 @@ value="0.6" oninput="sfxVolume=this.value">
 
 const gameBox = document.getElementById('game-box');
 const slotBox = document.getElementById('slot');
+const cover = document.getElementById('cover');
+const bar = document.getElementById('bar-inner');
 
 const bgm = document.getElementById('bgm');
 const sfx1 = document.getElementById('sfx1');
 const sfx2 = document.getElementById('sfx2');
 
-let musicStarted = false;
-let sfxVolume = 0.6;
-let musicOn = true;
-let sfxOn = true;
+let level = 1;
+let timeLeft = 180;
+let timer = null;
 
+let sfxVolume = 0.6;
 let cards = [];
 let slot = [];
 
-/* ===== ⭐ 音乐稳定修复 ===== */
-window.addEventListener('touchstart', () => {
-  bgm.load();
-}, { once: true });
+function startGame(){
+  cover.style.display = "none";
+  initLevel1();
+}
 
+/* ===== 音乐 ===== */
 function startMusic(){
-  if(musicStarted) return;
-
   bgm.volume = 0.4;
-  bgm.load();
-
-  const p = bgm.play();
-
-  if(p){
-    p.catch(()=>{
-      setTimeout(()=>bgm.play().catch(()=>{}), 200);
-    });
-  }
-
-  musicStarted = true;
+  bgm.play().catch(()=>{});
 }
 
-function toggleMusic(){
-  musicOn = !musicOn;
-  musicOn ? bgm.play() : bgm.pause();
+/* ===== 关卡 ===== */
+function initLevel1(){
+  level = 1;
+  timeLeft = 180;
+  generateCards(1);
+  startTimer();
 }
 
-function toggleSfx(){
-  sfxOn = !sfxOn;
+function initLevel2(){
+  level = 2;
+  timeLeft = 120;
+  generateCards(2);
+  startTimer();
 }
 
-function playSfx(){
-  if(!sfxOn) return;
-  const s = Math.random() < 0.5 ? sfx1 : sfx2;
-  s.currentTime = 0;
-  s.volume = sfxVolume;
-  s.play().catch(()=>{});
+/* ===== 难度生成 ===== */
+function generateCards(lv){
+
+  let temp = [];
+
+  const files = ['a.jpg','b.jpg','c.jpg','d.jpg','e.jpg','f.jpg','g.jpg','h.jpg','i.jpg'];
+
+  files.forEach(f=>{
+    let count = lv === 1 ? 4 : 6;
+    for(let i=0;i<count;i++) temp.push(f);
+  });
+
+  temp.sort(()=>Math.random()-0.5);
+
+  const maxX = gameBox.clientWidth - 60;
+  const maxY = gameBox.clientHeight - 60;
+
+  cards = temp.map((img,i)=>({
+    id:i,
+    img,
+    x:Math.random()*maxX,
+    y:Math.random()*maxY,
+    layer:Math.floor(Math.random()* (lv===1?4:6)),
+    state:0
+  }));
+
+  render();
 }
 
-/* ===== 初始化 ===== */
-const cardFiles = ['a.jpg','b.jpg','c.jpg','d.jpg','e.jpg','f.jpg','g.jpg','h.jpg','i.jpg'];
-
-function init(){
-
-  setTimeout(()=>{
-
-    let temp = [];
-
-    cardFiles.forEach(f=>{
-      for(let i=0;i<6;i++) temp.push(f);
-    });
-
-    temp.sort(()=>Math.random()-0.5);
-
-    const maxX = gameBox.clientWidth - 60;
-    const maxY = gameBox.clientHeight - 60;
-
-    cards = temp.map((img,i)=>({
-      id:i,
-      img,
-      x:Math.random()*maxX,
-      y:Math.random()*maxY,
-      layer:Math.floor(Math.random()*6),
-      state:0
-    }));
-
-    render();
-
-  },100);
-}
-
-/* ===== 遮挡判断 ===== */
+/* ===== 遮挡 ===== */
 function isCovered(c1){
   for(let c2 of cards){
     if(c2.id===c1.id || c2.state!==0) continue;
@@ -295,67 +307,51 @@ function render(){
     div.innerHTML=`<img src="images111/${c.img}">`;
 
     div.onclick=()=>{
-      startMusic();
-      playSfx();
-
       if(covered) return;
 
       if(slot.length<7){
         c.state=1;
         slot.push(c.img);
-
-        checkMatch();
         render();
-        checkEnd();
       }
+
+      checkWin();
     };
 
     gameBox.appendChild(div);
   });
 
-  slotBox.innerHTML = slot.map(i=>
-    `<img class="slot-img" src="images111/${i}">`
-  ).join('');
+  slotBox.innerHTML = slot.map(i=>`<img class="slot-img" src="images111/${i}">`).join('');
 }
 
-/* ===== 消除 ===== */
-function checkMatch(){
-  const count={};
-
-  slot.forEach(i=> count[i]=(count[i]||0)+1);
-
-  for(let img in count){
-    if(count[img]>=3){
-      slot = slot.filter(i=>i!==img);
-
-      cards.forEach(c=>{
-        if(c.img===img && c.state===1){
-          c.state=2;
-        }
-      });
+/* ===== 胜利 ===== */
+function checkWin(){
+  if(cards.every(c=>c.state!==0)){
+    if(level===1){
+      setTimeout(()=>initLevel2(),1000);
+    } else {
+      alert("通关！");
+      location.reload();
     }
   }
 }
 
-/* ===== 结束 ===== */
-function checkEnd(){
+/* ===== 计时器 ===== */
+function startTimer(){
+  clearInterval(timer);
 
-  if(slot.length>=7){
-    setTimeout(()=>{
-      alert("啊哦...可可跑走啦！再试一次吧！");
-      location.reload();
-    },200);
-  }
+  timer = setInterval(()=>{
+    timeLeft--;
 
-  if(cards.every(c=>c.state===2)){
-    setTimeout(()=>{
-      alert("你成功抓住了可可！一起做巧克力吧！");
+    bar.style.width = (timeLeft/(level===1?180:120))*100 + "%";
+
+    if(timeLeft<=0){
+      clearInterval(timer);
+      alert("失败！");
       location.reload();
-    },200);
-  }
+    }
+  },1000);
 }
-
-init();
 
 </script>
 
