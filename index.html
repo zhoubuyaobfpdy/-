@@ -8,14 +8,29 @@
 
 <style>
 
+/* ================= CSS变量（统一管理） ================= */
+:root {
+  --phone-width: min(90vw, 440px);
+  --phone-padding: 16px;
+  --game-area-ratio: 0.85;
+  --card-size: 60px;
+  --card-shadow: 0 8px 16px rgba(0, 0, 0, 0.35);
+  --card-shadow-hover: 0 12px 24px rgba(0, 0, 0, 0.5);
+  --border-radius: 20px;
+  --transition: 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
 /* ================= 背景 ================= */
 body {
   margin: 0;
+  padding: 0;
   height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
   background: #5c4033;
+  font-family: 'Arial', sans-serif;
+  overflow: hidden;
 }
 
 body::before {
@@ -24,125 +39,236 @@ body::before {
   inset: 0;
   background: url('bg.jpg') no-repeat center center;
   background-size: contain;
+  background-attachment: fixed;
   z-index: -1;
 }
 
-/* ================= 自适应核心（重点） ================= */
+/* ================= 手机容器（响应式核心） ================= */
 #phone {
-  width: 80vw;
-  max-width: 420px;
-
-  aspect-ratio: 9/16; /* ⭐ 保持比例 */
+  width: var(--phone-width);
+  max-width: 440px;
+  aspect-ratio: 9 / 16;
   
-  background: rgba(0,0,0,0.35);
-  border-radius: 25px;
-
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: var(--border-radius);
+  
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+  padding-top: var(--phone-padding);
+  gap: 12px;
+  
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* iPad / 大屏优化 */
-@media (min-width: 768px) {
-  #phone {
-    width: 60vw;
-    max-width: 500px;
-  }
-}
-
-/* 标题 */
+/* ================= 标题 ================= */
 h2 {
   color: white;
-  margin: 6px 0;
+  margin: 6px 0 4px 0;
+  font-size: 18px;
+  font-weight: 600;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-/* ================= 控制 ================= */
+/* ================= 控制面板 ================= */
 
-/* 电脑 */
+/* 电脑版控制 */
 #controls-desktop {
   color: white;
   font-size: 12px;
+  width: 90%;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-/* 手机 */
+#controls-desktop input[type="range"] {
+  width: 100%;
+  cursor: pointer;
+  accent-color: #d4a574;
+}
+
+/* 手机版控制 */
 #controls-mobile {
   display: none;
+  width: 90%;
+  gap: 8px;
+  justify-content: center;
 }
 
-/* 手机启用按钮 */
-@media (max-width: 768px) {
+/* 在手机和平板上启用手机版控制 */
+@media (max-width: 1024px) {
   #controls-desktop {
     display: none;
   }
   #controls-mobile {
-    display: block;
+    display: flex;
+    flex-wrap: wrap;
   }
 }
 
 button {
-  margin: 4px;
-  padding: 6px 10px;
-  border-radius: 8px;
+  padding: 10px 16px;
+  border-radius: 12px;
   border: none;
-  background: rgba(255,255,255,0.2);
+  background: rgba(212, 165, 116, 0.3);
   color: white;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(212, 165, 116, 0.5);
+  flex: 1;
+  min-width: 120px;
 }
 
-/* ================= 游戏区 ================= */
+button:hover {
+  background: rgba(212, 165, 116, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+/* ================= 游戏区域（响应式核心） ================= */
 #game-box {
   position: relative;
-  width: 85%;
-  aspect-ratio: 3/4;
-
-  background: rgba(255,255,255,0.12);
-  border-radius: 18px;
-
+  width: calc(var(--phone-width) * var(--game-area-ratio));
+  aspect-ratio: 3 / 4;
+  
+  background: rgba(30, 20, 15, 0.8);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  
   overflow: hidden;
+  flex-grow: 0;
+  flex-shrink: 0;
+  
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
-/* ================= 卡牌 ================= */
+/* ================= 卡牌（高级交互） ================= */
 .card {
   position: absolute;
-  width: 60px;
-  height: 60px;
-
+  width: var(--card-size);
+  height: var(--card-size);
+  
   border-radius: 12px;
   overflow: hidden;
-  background: #a67c52;
+  background: linear-gradient(135deg, #c19a6b 0%, #8b6f47 100%);
+  
+  cursor: pointer;
+  transition: all var(--transition);
+  
+  box-shadow: var(--card-shadow);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+/* 卡牌悬停效果 */
+.card:hover:not(.covered) {
+  transform: scale(1.12) translateZ(0);
+  box-shadow: var(--card-shadow-hover);
+  filter: brightness(1.1);
+}
+
+/* 卡牌被遮挡状态 */
+.card.covered {
+  filter: brightness(0.4);
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+/* 卡牌被选中状态 */
+.card.selected {
+  filter: opacity(0.3);
+  pointer-events: none;
 }
 
 .card img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
 }
 
-.covered {
-  filter: brightness(0.5);
-  pointer-events: none;
-}
-
-/* ================= 槽位 ================= */
+/* ================= 槽位（结果展示） ================= */
 #slot {
-  width: 85%;
-  height: 80px;
-
-  margin-top: 10px;
-
+  width: calc(var(--phone-width) * var(--game-area-ratio));
+  height: auto;
+  min-height: 70px;
+  
   display: flex;
   align-items: center;
-
-  background: rgba(30,20,15,0.9);
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px;
+  
+  background: rgba(30, 20, 15, 0.9);
   border-radius: 14px;
-  padding: 4px;
+  border: 1px solid rgba(212, 165, 116, 0.3);
+  
+  justify-content: center;
+  
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
 .slot-img {
-  width: 45px;
-  height: 45px;
-  margin: 2px;
-  border-radius: 8px;
+  width: 50px;
+  height: 50px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  object-fit: cover;
+  display: block;
+  
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* ================= 响应式调整 ================= */
+
+/* iPad / 平板优化 */
+@media (min-width: 768px) and (max-width: 1024px) {
+  :root {
+    --phone-width: min(75vw, 500px);
+    --card-size: 65px;
+  }
+}
+
+/* 大屏优化 */
+@media (min-width: 1025px) {
+  :root {
+    --phone-width: min(50vw, 520px);
+    --card-size: 70px;
+  }
+}
+
+/* 超小屏优化 */
+@media (max-height: 600px) {
+  #phone {
+    padding-top: 10px;
+    gap: 8px;
+  }
+  
+  h2 {
+    font-size: 16px;
+    margin: 2px 0;
+  }
 }
 
 </style>
@@ -157,25 +283,22 @@ button {
 
 <div id="phone">
 
-<h2>可了个嫑·困难版</h2>
+  <h2>可了个嫑·困难版</h2>
 
-<!-- 💻 -->
-<div id="controls-desktop">
-🎵 <input type="range" min="0" max="1" step="0.01"
-value="0.4" oninput="bgm.volume=this.value">
-<br>
-🔊 <input type="range" min="0" max="1" step="0.01"
-value="0.6" oninput="sfxVolume=this.value">
-</div>
+  <!-- 💻 电脑版控制 -->
+  <div id="controls-desktop">
+    <div>🎵 音乐: <input type="range" min="0" max="1" step="0.01" value="0.4" oninput="bgm.volume=this.value"></div>
+    <div>🔊 音效: <input type="range" min="0" max="1" step="0.01" value="0.6" oninput="sfxVolume=this.value"></div>
+  </div>
 
-<!-- 📱 -->
-<div id="controls-mobile">
-<button onclick="toggleMusic()">🎵 音乐</button>
-<button onclick="toggleSfx()">🔊 音效</button>
-</div>
+  <!-- 📱 手机版控制 -->
+  <div id="controls-mobile">
+    <button id="musicBtn" onclick="toggleMusic()">🎵 音乐 ON</button>
+    <button id="sfxBtn" onclick="toggleSfx()">🔊 音效 ON</button>
+  </div>
 
-<div id="game-box"></div>
-<div id="slot"></div>
+  <div id="game-box"></div>
+  <div id="slot"></div>
 
 </div>
 
@@ -183,83 +306,101 @@ value="0.6" oninput="sfxVolume=this.value">
 
 const gameBox = document.getElementById('game-box');
 const slotBox = document.getElementById('slot');
-
 const bgm = document.getElementById('bgm');
 const sfx1 = document.getElementById('sfx1');
 const sfx2 = document.getElementById('sfx2');
+const musicBtn = document.getElementById('musicBtn');
+const sfxBtn = document.getElementById('sfxBtn');
 
 let musicStarted = false;
 let sfxVolume = 0.6;
 let musicOn = true;
 let sfxOn = true;
 
-/* 音乐 */
-function startMusic(){
-  if(musicStarted) return;
+/* ================= 音乐控制 ================= */
+
+function startMusic() {
+  if (musicStarted) return;
   bgm.volume = 0.4;
-  bgm.play().catch(()=>{});
+  bgm.play().catch(() => {});
   musicStarted = true;
 }
 
-function toggleMusic(){
+function toggleMusic() {
   musicOn = !musicOn;
-  if(musicOn){
-    bgm.play().catch(()=>{});
-  }else{
+  if (musicOn) {
+    bgm.volume = 0.4;
+    bgm.play().catch(() => {});
+    musicBtn.textContent = '🎵 音乐 ON';
+    musicBtn.style.background = 'rgba(212, 165, 116, 0.4)';
+  } else {
     bgm.pause();
+    musicBtn.textContent = '🎵 音乐 OFF';
+    musicBtn.style.background = 'rgba(100, 100, 100, 0.3)';
   }
 }
 
-function toggleSfx(){
+function toggleSfx() {
   sfxOn = !sfxOn;
+  if (sfxOn) {
+    sfxBtn.textContent = '🔊 音效 ON';
+    sfxBtn.style.background = 'rgba(212, 165, 116, 0.4)';
+  } else {
+    sfxBtn.textContent = '🔊 音效 OFF';
+    sfxBtn.style.background = 'rgba(100, 100, 100, 0.3)';
+  }
 }
 
-/* 音效（无延迟版） */
-function playSfx(){
-  if(!sfxOn) return;
+/* 音效播放（无延迟版） */
+function playSfx() {
+  if (!sfxOn) return;
   const s = Math.random() < 0.5 ? sfx1 : sfx2;
   s.currentTime = 0;
   s.volume = sfxVolume;
-  s.play().catch(()=>{});
+  s.play().catch(() => {});
 }
 
-/* 卡牌 */
-const cardFiles = ['a.jpg','b.jpg','c.jpg','d.jpg','e.jpg','f.jpg','g.jpg','h.jpg','i.jpg'];
+/* ================= 卡牌管理 ================= */
+
+const cardFiles = ['a.jpg', 'b.jpg', 'c.jpg', 'd.jpg', 'e.jpg', 'f.jpg', 'g.jpg', 'h.jpg', 'i.jpg'];
 
 let cards = [];
 let slot = [];
 
-function init(){
+function init() {
+  let temp = [];
 
-  let temp=[];
-
-  /* ⭐ 难度设计：分组 + 混乱 */
-  cardFiles.forEach(f=>{
-    for(let i=0;i<6;i++) temp.push(f);
+  /* 难度设计：分组 + 混乱 */
+  cardFiles.forEach(f => {
+    for (let i = 0; i < 6; i++) temp.push(f);
   });
 
-  temp.sort(()=>Math.random()-0.5);
+  temp.sort(() => Math.random() - 0.5);
 
-  cards = temp.map((img,i)=>({
-    id:i,
+  const gameBoxRect = gameBox.getBoundingClientRect();
+  const maxX = gameBoxRect.width - 60;
+  const maxY = gameBoxRect.height - 60;
+
+  cards = temp.map((img, i) => ({
+    id: i,
     img,
-    x:Math.random()*240,
-    y:Math.random()*340,
-    layer:Math.floor(Math.random()*6),
-    state:0
+    x: Math.random() * maxX,
+    y: Math.random() * maxY,
+    layer: Math.floor(Math.random() * 6),
+    state: 0
   }));
 
   render();
 }
 
-/* 遮挡 */
-function isCovered(c1){
-  for(let c2 of cards){
-    if(c2.id===c1.id || c2.state!==0) continue;
+/* 遮挡检测 */
+function isCovered(c1) {
+  for (let c2 of cards) {
+    if (c2.id === c1.id || c2.state !== 0) continue;
 
-    if(c2.layer > c1.layer &&
-       Math.abs(c2.x-c1.x)<55 &&
-       Math.abs(c2.y-c1.y)<55){
+    if (c2.layer > c1.layer &&
+      Math.abs(c2.x - c1.x) < 55 &&
+      Math.abs(c2.y - c1.y) < 55) {
       return true;
     }
   }
@@ -267,32 +408,33 @@ function isCovered(c1){
 }
 
 /* 渲染 */
-function render(){
-  gameBox.innerHTML='';
+function render() {
+  gameBox.innerHTML = '';
 
-  cards.forEach(c=>{
-    if(c.state!==0) return;
+  cards.forEach(c => {
+    if (c.state !== 0) return;
 
     const covered = isCovered(c);
 
-    const div=document.createElement('div');
-    div.className='card'+(covered?' covered':'');
+    const div = document.createElement('div');
+    div.className = 'card' + (covered ? ' covered' : '') + (c.state === 1 ? ' selected' : '');
 
-    div.style.left=c.x+'px';
-    div.style.top=c.y+'px';
-    div.style.zIndex=c.layer;
+    div.style.left = c.x + 'px';
+    div.style.top = c.y + 'px';
+    div.style.zIndex = c.layer;
 
-    div.innerHTML=`<img src="images111/${c.img}">`;
+    div.innerHTML = `<img src="images111/${c.img}" alt="card">`;
 
-    div.onclick=()=>{
+    div.onclick = (e) => {
+      e.stopPropagation();
 
       startMusic();
       playSfx();
 
-      if(covered) return;
+      if (covered) return;
 
-      if(slot.length<7){
-        c.state=1;
+      if (slot.length < 7) {
+        c.state = 1;
         slot.push(c.img);
 
         checkMatch();
@@ -304,49 +446,49 @@ function render(){
     gameBox.appendChild(div);
   });
 
-  slotBox.innerHTML = slot.map(i=>
-    `<img class="slot-img" src="images111/${i}">`
+  slotBox.innerHTML = slot.map(i =>
+    `<img class="slot-img" src="images111/${i}" alt="slot">`
   ).join('');
 }
 
-/* 消除 */
-function checkMatch(){
-  const count={};
+/* 匹配消除 */
+function checkMatch() {
+  const count = {};
 
-  slot.forEach(i=>{
-    count[i]=(count[i]||0)+1;
+  slot.forEach(i => {
+    count[i] = (count[i] || 0) + 1;
   });
 
-  for(let img in count){
-    if(count[img]>=3){
-      slot=slot.filter(i=>i!==img);
-      cards.forEach(c=>{
-        if(c.img===img && c.state===1){
-          c.state=2;
+  for (let img in count) {
+    if (count[img] >= 3) {
+      slot = slot.filter(i => i !== img);
+      cards.forEach(c => {
+        if (c.img === img && c.state === 1) {
+          c.state = 2;
         }
       });
     }
   }
 }
 
-/* 结束 */
-function checkEnd(){
-
-  if(slot.length>=7){
-    setTimeout(()=>{
+/* 游戏结束检测 */
+function checkEnd() {
+  if (slot.length >= 7) {
+    setTimeout(() => {
       alert("啊哦...可可跑走啦！再试一次吧！");
       location.reload();
-    },200);
+    }, 200);
   }
 
-  if(cards.every(c=>c.state===2)){
-    setTimeout(()=>{
+  if (cards.every(c => c.state === 2)) {
+    setTimeout(() => {
       alert("你成功抓住了可可！一起做巧克力吧！");
       location.reload();
-    },200);
+    }, 200);
   }
 }
 
+/* 初始化游戏 */
 init();
 
 </script>
