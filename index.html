@@ -8,12 +8,6 @@
 
 <style>
 
-/* ===== 字体 ===== */
-body {
-  font-family: "Arial Rounded MT Bold","PingFang SC",sans-serif;
-}
-
-/* ===== 背景 ===== */
 body {
   margin: 0;
   height: 100vh;
@@ -22,6 +16,7 @@ body {
   align-items: center;
   background: #5c4033;
   overflow: hidden;
+  font-family: "Arial Rounded MT Bold","PingFang SC",sans-serif;
 }
 
 body::before {
@@ -72,7 +67,6 @@ body::before {
   gap: 8px;
 }
 
-/* ===== 标题 ===== */
 .level-title {
   color: #fff;
   font-size: 18px;
@@ -116,7 +110,7 @@ input[type="range"] {
   overflow: hidden;
 }
 
-/* ===== 卡牌（图片版恢复）===== */
+/* ===== 卡牌 ===== */
 .card {
   position: absolute;
   width: 60px;
@@ -241,7 +235,6 @@ function startTimer(){
   timer = setInterval(()=>{
 
     time--;
-
     bar.style.width = (time/120)*100 + "%";
 
     if(time <= 0){
@@ -258,7 +251,7 @@ function failGame(){
   location.reload();
 }
 
-/* ===== 生成（图片恢复版）===== */
+/* ===== 生成 ===== */
 function generate(){
 
   const files = ['a.jpg','b.jpg','c.jpg','d.jpg','e.jpg','f.jpg','g.jpg','h.jpg','i.jpg'];
@@ -299,7 +292,7 @@ function isCovered(c1){
   );
 }
 
-/* ===== 渲染（图片版）===== */
+/* ===== 渲染 ===== */
 function render(){
 
   gameBox.innerHTML = "";
@@ -325,6 +318,12 @@ function render(){
       c.state = 1;
       slot.push(c.img);
 
+      /* ===== 🚨 7槽失败修复 ===== */
+      if(slot.length > 7){
+        failGame();
+        return;
+      }
+
       checkMatch();
       render();
       checkWin();
@@ -336,7 +335,7 @@ function render(){
   slotBox.innerHTML = slot.map(i=>`<img class="slot-img" src="images111/${i}">`).join("");
 }
 
-/* ===== 三消 ===== */
+/* ===== 🚨 三消修复（严格3个才消）===== */
 function checkMatch(){
 
   let count = {};
@@ -346,7 +345,7 @@ function checkMatch(){
   });
 
   for(let k in count){
-    if(count[k] >= 3){
+    if(count[k] === 3){
 
       slot = slot.filter(i => i !== k);
 
