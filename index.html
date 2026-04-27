@@ -227,10 +227,13 @@ function render() {
             startMusic(); // 顺便启动音乐
 
             /* 🎲 随机音效 */
-            const sound = Math.random() < 0.5 ? sfx1 : sfx2;
-            sound.currentTime = 0;
-            sound.volume = 0.6;
-            sound.play();
+const soundFile = Math.random() < 0.5
+  ? "soundeffect_Dadadada.mp3"
+  : "soundeffectdrrro.mp3";
+
+const sound = new Audio(soundFile);
+sound.volume = 0.6;
+sound.play();
 
             if(!covered && slot.length < 7) {
                 c.state = 1;
