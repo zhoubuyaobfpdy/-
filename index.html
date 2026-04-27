@@ -52,19 +52,15 @@ h2 {
   text-shadow: 0 2px 6px rgba(0,0,0,0.5);
 }
 
-/* 控制按钮 */
+/* 控制区 */
 #controls {
+  color: white;
+  font-size: 12px;
   margin-bottom: 10px;
 }
 
-#controls button {
-  margin: 0 5px;
-  padding: 5px 10px;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  background: rgba(255,255,255,0.2);
-  color: white;
+#controls div {
+  margin: 5px 0;
 }
 
 /* 游戏区 */
@@ -146,15 +142,27 @@ h2 {
 
 <body onclick="startMusic()">
 
-<!-- 🎵 音频 -->
+<!-- 🎵 音乐 -->
 <audio id="bgm" src="music.mp3" loop></audio>
 
 <div id="phone">
   <h2>可了个嫑·困难版</h2>
 
+  <!-- 🎛 控制 -->
   <div id="controls">
-    <button onclick="toggleMusic()">🎵 音乐</button>
-    <button onclick="toggleSfx()">🔊 音效</button>
+
+    <div>
+      🎵 音乐
+      <input type="range" min="0" max="1" step="0.01"
+        value="0.4" onchange="setMusicVolume(this.value)">
+    </div>
+
+    <div>
+      🔊 音效
+      <input type="range" min="0" max="1" step="0.01"
+        value="0.6" onchange="setSfxVolume(this.value)">
+    </div>
+
   </div>
 
   <div id="game-box"></div>
@@ -166,33 +174,31 @@ const gameBox = document.getElementById('game-box');
 const slotBox = document.getElementById('slot');
 const bgm = document.getElementById('bgm');
 
-let musicStarted = false;
-let musicMuted = false;
-let sfxMuted = false;
+/* 🎚 音量 */
+let musicVolume = 0.4;
+let sfxVolume = 0.6;
 
+/* 状态 */
+let musicStarted = false;
+
+/* 🎵 开始音乐（iOS必须用户点击触发） */
 function startMusic() {
     if (musicStarted) return;
 
-    bgm.volume = 0.4;
+    bgm.volume = musicVolume;
     bgm.play().catch(()=>{});
 
     musicStarted = true;
 }
 
-/* 🎵 音乐开关 */
-function toggleMusic() {
-    musicMuted = !musicMuted;
-
-    if (musicMuted) {
-        bgm.pause();
-    } else {
-        bgm.play().catch(()=>{});
-    }
+/* 🎚 音量控制 */
+function setMusicVolume(v) {
+    musicVolume = v;
+    bgm.volume = musicVolume;
 }
 
-/* 🔊 音效开关 */
-function toggleSfx() {
-    sfxMuted = !sfxMuted;
+function setSfxVolume(v) {
+    sfxVolume = v;
 }
 
 /* 🎮 卡牌 */
@@ -258,15 +264,13 @@ function render() {
             startMusic();
 
             /* 🔊 音效 */
-            if (!sfxMuted) {
-                const file = Math.random() < 0.5
-                    ? "soundeffect_Dadadada.mp3"
-                    : "soundeffectdrrro.mp3";
+            const file = Math.random() < 0.5
+                ? "soundeffect_Dadadada.mp3"
+                : "soundeffectdrrro.mp3";
 
-                const sound = new Audio(file);
-                sound.volume = 0.6;
-                sound.play().catch(()=>{});
-            }
+            const sound = new Audio(file);
+            sound.volume = sfxVolume;
+            sound.play().catch(()=>{});
 
             if(!covered && slot.length < 7) {
                 c.state = 1;
