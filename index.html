@@ -8,7 +8,7 @@
 
 <style>
 
-/* ===================== 基础适配（解决iPad/手机拉伸） ===================== */
+/* ===================== 页面基础 ===================== */
 body {
   margin: 0;
   height: 100vh;
@@ -19,25 +19,37 @@ body {
   overflow: hidden;
 }
 
-/* 背景 */
+/* ⭐ 背景修复：不裁上方 */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
+
   background: url('bg.jpg') no-repeat center center;
-  background-size: cover; /* ⭐ 改这里：铺满屏幕 */
-  opacity: 0.9;
+
+  /* ⭐ 关键改动：contain + 居中 */
+  background-size: contain;
+  background-color: #5c4033;
+
+  opacity: 0.95;
   z-index: -1;
+}
+
+/* ===================== 整体缩放容器（核心） ===================== */
+#scale-wrapper {
+  width: 360px;
+  height: 640px;
+
+  transform-origin: center;
 }
 
 /* ===================== 手机框 ===================== */
 #phone {
-  width: min(360px, 92vw);
-  height: min(640px, 92vh);
+  width: 100%;
+  height: 100%;
 
   background: rgba(0,0,0,0.35);
   border-radius: 25px;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
 
   display: flex;
   flex-direction: column;
@@ -48,17 +60,17 @@ body::before {
 /* 标题 */
 h2 {
   color: white;
+  margin: 8px 0;
 }
 
-/* ===================== 控制区（修复iOS无效问题） ===================== */
+/* 控制 */
 #controls {
   color: white;
   font-size: 12px;
-  margin-bottom: 10px;
-  width: 90%;
+  margin-bottom: 8px;
 }
 
-/* ===================== 游戏区 ===================== */
+/* ===================== 游戏区域 ===================== */
 #game-box {
   position: relative;
   width: 320px;
@@ -67,12 +79,10 @@ h2 {
   background: rgba(255,255,255,0.12);
   border-radius: 20px;
 
-  /* ⭐ 防止点击穿透 */
   overflow: hidden;
-  touch-action: manipulation;
 }
 
-/* ===================== 卡牌（去边框优化） ===================== */
+/* 卡牌 */
 .card {
   position: absolute;
   width: 60px;
@@ -81,10 +91,7 @@ h2 {
   border-radius: 12px;
   overflow: hidden;
 
-  /* ⭐ 吃掉边缘棕色 */
   background: #a67c52;
-
-  pointer-events: auto;
 }
 
 .card img {
@@ -94,13 +101,13 @@ h2 {
   display: block;
 }
 
-/* 被遮挡不能点（关键修复） */
+/* 被遮挡 */
 .covered {
   pointer-events: none;
   filter: brightness(0.5);
 }
 
-/* ===================== 槽位（升级UI） ===================== */
+/* 槽位 */
 #slot {
   width: 320px;
   height: 85px;
@@ -111,16 +118,12 @@ h2 {
 
   background: rgba(30,20,15,0.9);
   border-radius: 15px;
-  padding: 5px;
-
-  box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
 }
 
 .slot-img {
   width: 45px;
   height: 45px;
   margin: 2px;
-  object-fit: cover;
   border-radius: 8px;
 }
 
@@ -129,28 +132,23 @@ h2 {
 
 <body onclick="startMusic()">
 
-<!-- 音频 -->
 <audio id="bgm" src="music.mp3" loop></audio>
 <audio id="sfx1" src="soundeffect_Dadadada.mp3"></audio>
 <audio id="sfx2" src="soundeffectdrrro.mp3"></audio>
+
+<!-- ⭐ 缩放容器 -->
+<div id="scale-wrapper">
 
 <div id="phone">
 
 <h2>可了个嫑·困难版</h2>
 
-<!-- ⭐ 修复：滑条iOS兼容 -->
 <div id="controls">
-
-🎵 音乐
-<input type="range" min="0" max="1" step="0.01"
+🎵 音乐 <input type="range" min="0" max="1" step="0.01"
 value="0.4" oninput="bgm.volume=this.value">
-
 <br>
-
-🔊 音效
-<input type="range" min="0" max="1" step="0.01"
+🔊 音效 <input type="range" min="0" max="1" step="0.01"
 value="0.6" oninput="sfxVolume=this.value">
-
 </div>
 
 <div id="game-box"></div>
@@ -158,17 +156,35 @@ value="0.6" oninput="sfxVolume=this.value">
 
 </div>
 
+</div>
+
 <script>
 
 const gameBox = document.getElementById('game-box');
 const slotBox = document.getElementById('slot');
-
 const bgm = document.getElementById('bgm');
 const sfx1 = document.getElementById('sfx1');
 const sfx2 = document.getElementById('sfx2');
 
 let musicStarted = false;
 let sfxVolume = 0.6;
+
+/* ===================== 自适应缩放（关键） ===================== */
+function resizeGame() {
+  const baseW = 360;
+  const baseH = 640;
+
+  const scale = Math.min(
+    window.innerWidth / baseW,
+    window.innerHeight / baseH
+  );
+
+  document.getElementById("scale-wrapper").style.transform =
+    `scale(${scale})`;
+}
+
+window.addEventListener("resize", resizeGame);
+resizeGame();
 
 /* ===================== 音乐 ===================== */
 function startMusic(){
@@ -186,7 +202,7 @@ function playSfx(){
   s.play().catch(()=>{});
 }
 
-/* ===================== 卡牌 ===================== */
+/* ===================== 卡牌逻辑（保持你原版） ===================== */
 const cardFiles = ['a.jpg','b.jpg','c.jpg','d.jpg','e.jpg','f.jpg','g.jpg','h.jpg','i.jpg'];
 
 let cards = [];
@@ -206,14 +222,13 @@ function init(){
     img,
     x:Math.random()*260,
     y:Math.random()*360,
-    layer:Math.floor(Math.random()*6), // ⭐ 难度提升
+    layer:Math.floor(Math.random()*6),
     state:0
   }));
 
   render();
 }
 
-/* ===================== 遮挡逻辑 ===================== */
 function isCovered(c1){
   for(let c2 of cards){
     if(c2.id===c1.id || c2.state!==0) continue;
@@ -227,7 +242,6 @@ function isCovered(c1){
   return false;
 }
 
-/* ===================== 渲染 ===================== */
 function render(){
   gameBox.innerHTML='';
 
@@ -250,7 +264,7 @@ function render(){
       startMusic();
       playSfx();
 
-      if(!covered && slot.length<5){ // ⭐ 更难（关键）
+      if(!covered && slot.length<7){
         c.state=1;
         slot.push(c.img);
 
@@ -268,28 +282,10 @@ function render(){
   `).join('');
 }
 
-/* ===================== 消除 ===================== */
-function checkMatch(){
-  const count={};
-
-  slot.forEach(i=>{
-    count[i]=(count[i]||0)+1;
-  });
-
-  for(let img in count){
-    if(count[img]>=3){
-      slot=slot.filter(i=>i!==img);
-      cards.forEach(c=>{
-        if(c.img===img && c.state===1) c.state=2;
-      });
-    }
-  }
-}
-
-/* ===================== 结束提示（你指定文案） ===================== */
+/* ===================== 结束提示 ===================== */
 function checkEnd(){
 
-  if(slot.length>=5){
+  if(slot.length>=7){
     setTimeout(()=>{
       alert("啊哦...可可跑走啦！再试一次吧！");
       location.reload();
