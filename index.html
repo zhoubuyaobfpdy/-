@@ -85,14 +85,12 @@ h2 {
   overflow: hidden;
 }
 
-/* ⭐⭐ 重点优化：图片统一视觉 */
 .card img {
   width: 100%;
   height: 100%;
-  object-fit: cover;        /* 自动裁剪统一 */
-  object-position: center;  /* 居中 */
+  object-fit: cover;
+  object-position: center;
   display: block;
-  border-radius: 10px;
 }
 
 .card:active {
@@ -132,7 +130,13 @@ h2 {
 </style>
 </head>
 
-<body>
+<body onclick="startMusic()">
+
+<!-- 🎵 音频系统 -->
+<audio id="bgm" src="music.mp3" loop></audio>
+
+<audio id="sfx1" src="soundeffect_Dadadada.mp3"></audio>
+<audio id="sfx2" src="soundeffectdrrro.mp3"></audio>
 
 <div id="phone">
   <h2>可了个嫑·困难版</h2>
@@ -144,6 +148,23 @@ h2 {
 const gameBox = document.getElementById('game-box');
 const slotBox = document.getElementById('slot');
 
+const bgm = document.getElementById('bgm');
+const sfx1 = document.getElementById('sfx1');
+const sfx2 = document.getElementById('sfx2');
+
+let musicStarted = false;
+
+/* 🎵 点击解锁音乐 */
+function startMusic() {
+    if (musicStarted) return;
+
+    bgm.volume = 0.4;
+    bgm.play().catch(()=>{});
+
+    musicStarted = true;
+}
+
+/* 🎮 卡牌逻辑 */
 const cardFiles = ['a.jpg','b.jpg','c.jpg','d.jpg','e.jpg','f.jpg','g.jpg','h.jpg','i.jpg'];
 
 let cards = [];
@@ -202,6 +223,15 @@ function render() {
         div.innerHTML = `<img src="images111/${c.img}">`;
 
         div.onclick = () => {
+
+            startMusic(); // 顺便启动音乐
+
+            /* 🎲 随机音效 */
+            const sound = Math.random() < 0.5 ? sfx1 : sfx2;
+            sound.currentTime = 0;
+            sound.volume = 0.6;
+            sound.play();
+
             if(!covered && slot.length < 7) {
                 c.state = 1;
                 slot.push(c.img);
