@@ -8,7 +8,7 @@
 
 <style>
 
-/* ===================== 页面基础 ===================== */
+/* ================= 背景与居中 ================= */
 body {
   margin: 0;
   height: 100vh;
@@ -19,34 +19,22 @@ body {
   overflow: hidden;
 }
 
-/* ⭐ 背景修复：不裁上方 */
+/* ⭐ 背景不裁切 */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
-
   background: url('bg.jpg') no-repeat center center;
-
-  /* ⭐ 关键改动：contain + 居中 */
   background-size: contain;
   background-color: #5c4033;
-
-  opacity: 0.95;
   z-index: -1;
+  opacity: 0.95;
 }
 
-/* ===================== 整体缩放容器（核心） ===================== */
-#scale-wrapper {
+/* ================= 手机容器 ================= */
+#phone {
   width: 360px;
   height: 640px;
-
-  transform-origin: center;
-}
-
-/* ===================== 手机框 ===================== */
-#phone {
-  width: 100%;
-  height: 100%;
 
   background: rgba(0,0,0,0.35);
   border-radius: 25px;
@@ -60,29 +48,30 @@ body::before {
 /* 标题 */
 h2 {
   color: white;
-  margin: 8px 0;
+  margin: 6px 0;
 }
 
-/* 控制 */
+/* ================= 控制区 ================= */
 #controls {
   color: white;
   font-size: 12px;
   margin-bottom: 8px;
+  width: 90%;
 }
 
-/* ===================== 游戏区域 ===================== */
+/* ================= 游戏区 ================= */
 #game-box {
   position: relative;
   width: 320px;
   height: 420px;
 
   background: rgba(255,255,255,0.12);
-  border-radius: 20px;
+  border-radius: 18px;
 
   overflow: hidden;
 }
 
-/* 卡牌 */
+/* ================= 卡牌 ================= */
 .card {
   position: absolute;
   width: 60px;
@@ -98,26 +87,26 @@ h2 {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  display: block;
 }
 
-/* 被遮挡 */
 .covered {
-  pointer-events: none;
   filter: brightness(0.5);
+  pointer-events: none;
 }
 
-/* 槽位 */
+/* ================= 槽位 ================= */
 #slot {
   width: 320px;
   height: 85px;
+
   margin-top: 10px;
 
   display: flex;
   align-items: center;
 
   background: rgba(30,20,15,0.9);
-  border-radius: 15px;
+  border-radius: 14px;
+  padding: 4px;
 }
 
 .slot-img {
@@ -127,27 +116,38 @@ h2 {
   border-radius: 8px;
 }
 
+/* ================= 响应式 ================= */
+@media (max-width: 768px) {
+  #phone {
+    width: 95vw;
+    height: 95vh;
+  }
+}
+
 </style>
 </head>
 
 <body onclick="startMusic()">
 
+<!-- 音频 -->
 <audio id="bgm" src="music.mp3" loop></audio>
 <audio id="sfx1" src="soundeffect_Dadadada.mp3"></audio>
 <audio id="sfx2" src="soundeffectdrrro.mp3"></audio>
-
-<!-- ⭐ 缩放容器 -->
-<div id="scale-wrapper">
 
 <div id="phone">
 
 <h2>可了个嫑·困难版</h2>
 
+<!-- 控制 -->
 <div id="controls">
-🎵 音乐 <input type="range" min="0" max="1" step="0.01"
+🎵 音乐：
+<input type="range" min="0" max="1" step="0.01"
 value="0.4" oninput="bgm.volume=this.value">
+
 <br>
-🔊 音效 <input type="range" min="0" max="1" step="0.01"
+
+🔊 音效：
+<input type="range" min="0" max="1" step="0.01"
 value="0.6" oninput="sfxVolume=this.value">
 </div>
 
@@ -156,12 +156,11 @@ value="0.6" oninput="sfxVolume=this.value">
 
 </div>
 
-</div>
-
 <script>
 
 const gameBox = document.getElementById('game-box');
 const slotBox = document.getElementById('slot');
+
 const bgm = document.getElementById('bgm');
 const sfx1 = document.getElementById('sfx1');
 const sfx2 = document.getElementById('sfx2');
@@ -169,24 +168,10 @@ const sfx2 = document.getElementById('sfx2');
 let musicStarted = false;
 let sfxVolume = 0.6;
 
-/* ===================== 自适应缩放（关键） ===================== */
-function resizeGame() {
-  const baseW = 360;
-  const baseH = 640;
+let slot = [];
+let cards = [];
 
-  const scale = Math.min(
-    window.innerWidth / baseW,
-    window.innerHeight / baseH
-  );
-
-  document.getElementById("scale-wrapper").style.transform =
-    `scale(${scale})`;
-}
-
-window.addEventListener("resize", resizeGame);
-resizeGame();
-
-/* ===================== 音乐 ===================== */
+/* ================= 音乐 ================= */
 function startMusic(){
   if(musicStarted) return;
   bgm.volume = 0.4;
@@ -194,7 +179,7 @@ function startMusic(){
   musicStarted = true;
 }
 
-/* ===================== 音效 ===================== */
+/* ================= 音效 ================= */
 function playSfx(){
   const s = Math.random() < 0.5 ? sfx1 : sfx2;
   s.currentTime = 0;
@@ -202,11 +187,8 @@ function playSfx(){
   s.play().catch(()=>{});
 }
 
-/* ===================== 卡牌逻辑（保持你原版） ===================== */
+/* ================= 初始化 ================= */
 const cardFiles = ['a.jpg','b.jpg','c.jpg','d.jpg','e.jpg','f.jpg','g.jpg','h.jpg','i.jpg'];
-
-let cards = [];
-let slot = [];
 
 function init(){
   let temp = [];
@@ -220,8 +202,8 @@ function init(){
   cards = temp.map((img,i)=>({
     id:i,
     img,
-    x:Math.random()*260,
-    y:Math.random()*360,
+    x:Math.random()*250,
+    y:Math.random()*350,
     layer:Math.floor(Math.random()*6),
     state:0
   }));
@@ -229,6 +211,7 @@ function init(){
   render();
 }
 
+/* ================= 遮挡判断 ================= */
 function isCovered(c1){
   for(let c2 of cards){
     if(c2.id===c1.id || c2.state!==0) continue;
@@ -242,6 +225,7 @@ function isCovered(c1){
   return false;
 }
 
+/* ================= 渲染 ================= */
 function render(){
   gameBox.innerHTML='';
 
@@ -264,8 +248,10 @@ function render(){
       startMusic();
       playSfx();
 
-      if(!covered && slot.length<7){
-        c.state=1;
+      if(covered) return;
+
+      if(slot.length < 7){
+        c.state = 1;
         slot.push(c.img);
 
         checkMatch();
@@ -282,10 +268,31 @@ function render(){
   `).join('');
 }
 
-/* ===================== 结束提示 ===================== */
+/* ================= 消除 ================= */
+function checkMatch(){
+  const count={};
+
+  slot.forEach(i=>{
+    count[i]=(count[i]||0)+1;
+  });
+
+  for(let img in count){
+    if(count[img] >= 3){
+      slot = slot.filter(i => i !== img);
+
+      cards.forEach(c=>{
+        if(c.img===img && c.state===1){
+          c.state=2;
+        }
+      });
+    }
+  }
+}
+
+/* ================= 结束 ================= */
 function checkEnd(){
 
-  if(slot.length>=7){
+  if(slot.length >= 7){
     setTimeout(()=>{
       alert("啊哦...可可跑走啦！再试一次吧！");
       location.reload();
