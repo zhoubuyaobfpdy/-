@@ -12,7 +12,7 @@ body {
   background: #5c4033;
 }
 
-/* 背景图（完整显示） */
+/* 背景 */
 body::before {
   content: "";
   position: fixed;
@@ -26,15 +26,15 @@ body::before {
   z-index: -1;
 }
 
-/* 手机框（电脑用） */
+/* 手机框 */
 #phone {
   width: 360px;
   height: 640px;
-  margin: auto;
 
   position: absolute;
   top: 0; bottom: 0;
   left: 0; right: 0;
+  margin: auto;
 
   background: rgba(0,0,0,0.3);
   border-radius: 25px;
@@ -52,7 +52,7 @@ h2 {
   text-shadow: 0 2px 6px rgba(0,0,0,0.5);
 }
 
-/* 游戏区域 */
+/* 游戏区 */
 #game-box {
   position: relative;
   width: 320px;
@@ -82,18 +82,17 @@ h2 {
     -2px -2px 6px rgba(255,255,255,0.3);
 
   transition: transform 0.15s;
+  overflow: hidden;
 }
 
+/* ⭐⭐ 重点优化：图片统一视觉 */
 .card img {
   width: 100%;
   height: 100%;
-  border-radius: 10px;   /* 和卡片一致 */
-  object-fit: cover;     /* 防止拉伸 */
-  display: block;        /* 防止底部白边 */
-}
-
-.card {
-  overflow: hidden;
+  object-fit: cover;        /* 自动裁剪统一 */
+  object-position: center;  /* 居中 */
+  display: block;
+  border-radius: 10px;
 }
 
 .card:active {
@@ -119,9 +118,10 @@ h2 {
   width: 45px;
   height: 45px;
   margin: 2px;
+  object-fit: cover;
 }
 
-/* 手机优化 */
+/* 手机适配 */
 @media (max-width: 768px) {
   #phone {
     width: 100%;
