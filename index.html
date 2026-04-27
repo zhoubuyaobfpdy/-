@@ -8,6 +8,11 @@
 
 <style>
 
+/* ===== 字体（可爱风）===== */
+body {
+  font-family: "Arial Rounded MT Bold", "PingFang SC", "Helvetica", sans-serif;
+}
+
 /* ===== 背景 ===== */
 body {
   margin: 0;
@@ -39,58 +44,48 @@ body::before {
   align-items: center;
   z-index: 999;
   color: white;
+  gap: 20px;
 }
 
-#startBtn {
-  padding: 12px 24px;
-  margin-top: 20px;
-  border-radius: 12px;
+.cover-btn {
+  padding: 14px 26px;
+  border-radius: 16px;
   border: none;
   cursor: pointer;
   background: #7a4a2d;
   color: white;
+  font-size: 16px;
   transition: 0.2s;
 }
 
-#startBtn:hover {
+.cover-btn:hover {
   transform: scale(1.08);
 }
 
-#startBtn:active {
+.cover-btn:active {
   transform: scale(0.92);
 }
 
-/* ===== 主容器 ===== */
+/* ===== 主体 ===== */
 #phone {
   width: min(90vw, 420px);
   background: rgba(0,0,0,0.35);
   border-radius: 20px;
-
   display: flex;
   flex-direction: column;
   align-items: center;
-
   padding: 10px;
   gap: 8px;
 }
 
-/* ===== 进度条 ===== */
-#bar {
-  width: 100%;
-  height: 10px;
-  background: rgba(255,255,255,0.2);
-  border-radius: 20px;
-  overflow: hidden;
+/* ===== 关卡标题 ===== */
+.level-title {
+  color: #fff;
+  font-size: 18px;
+  font-weight: bold;
 }
 
-#bar-inner {
-  height: 100%;
-  width: 100%;
-  background: #c08a5b;
-  transition: width 1s linear;
-}
-
-/* ===== 游戏区域 ===== */
+/* ===== 游戏区 ===== */
 #game-box {
   position: relative;
   width: 100%;
@@ -100,16 +95,14 @@ body::before {
   overflow: hidden;
 }
 
-/* ===== 卡牌（重点升级）===== */
+/* ===== 卡牌 ===== */
 .card {
   position: absolute;
   width: 60px;
   height: 60px;
 
   border-radius: 10px;
-  overflow: hidden;
   background: #a67c52;
-
   cursor: pointer;
 
   transition: 0.08s;
@@ -118,21 +111,18 @@ body::before {
 
 .card:hover {
   transform: translateY(-2px);
-  filter: brightness(1.1);
 }
 
 .card:active {
   transform: scale(0.9);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
 }
 
 .card img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
 }
 
-/* 遮挡 */
+/* ===== 遮挡 ===== */
 .covered {
   pointer-events: none;
   filter: brightness(0.35);
@@ -157,18 +147,6 @@ body::before {
   border-radius: 8px;
 }
 
-/* ===== 音量滑条棕色 ===== */
-input[type="range"] {
-  accent-color: #8b5e3c;
-}
-
-/* ===== 控制 ===== */
-#controls {
-  color: white;
-  font-size: 12px;
-  width: 90%;
-}
-
 </style>
 </head>
 
@@ -176,24 +154,19 @@ input[type="range"] {
 
 <!-- ===== 封面 ===== -->
 <div id="cover">
-  <h1>可了个嫑</h1>
-  <button id="startBtn" onclick="startGame()">开始游戏</button>
+  <div style="font-size:28px;">可了个嫑</div>
+
+  <button class="cover-btn" onclick="startLevel(1)">🌱 第一关</button>
+  <button class="cover-btn" onclick="startLevel(2)">🔥 第二关</button>
 </div>
 
-<audio id="bgm" src="music.mp3" loop preload="auto"></audio>
+<audio id="bgm" src="music.mp3" loop></audio>
 <audio id="sfx1" src="soundeffect_Dadadada.mp3"></audio>
 <audio id="sfx2" src="soundeffectdrrro.mp3"></audio>
 
 <div id="phone">
 
-<!-- 控制 -->
-<div id="controls">
-🎵 <input type="range" min="0" max="1" step="0.01" value="0.4" oninput="bgm.volume=this.value">
-🔊 <input type="range" min="0" max="1" step="0.01" value="0.6" oninput="sfxVolume=this.value">
-</div>
-
-<!-- 进度条 -->
-<div id="bar"><div id="bar-inner"></div></div>
+<div class="level-title" id="levelTitle">第一关</div>
 
 <div id="game-box"></div>
 <div id="slot"></div>
@@ -202,58 +175,39 @@ input[type="range"] {
 
 <script>
 
+const cover = document.getElementById('cover');
+const title = document.getElementById('levelTitle');
 const gameBox = document.getElementById('game-box');
 const slotBox = document.getElementById('slot');
-const cover = document.getElementById('cover');
-const bar = document.getElementById('bar-inner');
-
-const bgm = document.getElementById('bgm');
-const sfx1 = document.getElementById('sfx1');
-const sfx2 = document.getElementById('sfx2');
 
 let level = 1;
-let timeLeft = 180;
-let timer = null;
-
-let sfxVolume = 0.6;
 let cards = [];
 let slot = [];
 
-function startGame(){
-  cover.style.display = "none";
-  initLevel1();
-}
-
 /* ===== 音乐 ===== */
 function startMusic(){
-  bgm.volume = 0.4;
-  bgm.play().catch(()=>{});
+  document.getElementById('bgm').play().catch(()=>{});
 }
 
-/* ===== 关卡 ===== */
-function initLevel1(){
-  level = 1;
-  timeLeft = 180;
-  generateCards(1);
-  startTimer();
+/* ===== 开始关卡 ===== */
+function startLevel(lv){
+  level = lv;
+  cover.style.display = "none";
+
+  title.innerText = lv === 1 ? "🌱 第一关" : "🔥 第二关";
+
+  generate();
 }
 
-function initLevel2(){
-  level = 2;
-  timeLeft = 120;
-  generateCards(2);
-  startTimer();
-}
+/* ===== 生成 ===== */
+function generate(){
 
-/* ===== 难度生成 ===== */
-function generateCards(lv){
+  let files = ['a.jpg','b.jpg','c.jpg','d.jpg','e.jpg','f.jpg','g.jpg','h.jpg','i.jpg'];
 
   let temp = [];
 
-  const files = ['a.jpg','b.jpg','c.jpg','d.jpg','e.jpg','f.jpg','g.jpg','h.jpg','i.jpg'];
-
   files.forEach(f=>{
-    let count = lv === 1 ? 4 : 6;
+    let count = level === 1 ? 3 : 6;
     for(let i=0;i<count;i++) temp.push(f);
   });
 
@@ -267,7 +221,7 @@ function generateCards(lv){
     img,
     x:Math.random()*maxX,
     y:Math.random()*maxY,
-    layer:Math.floor(Math.random()* (lv===1?4:6)),
+    layer:Math.floor(Math.random()*(level===1?3:6)),
     state:0
   }));
 
@@ -276,81 +230,83 @@ function generateCards(lv){
 
 /* ===== 遮挡 ===== */
 function isCovered(c1){
-  for(let c2 of cards){
-    if(c2.id===c1.id || c2.state!==0) continue;
-
-    if(c2.layer > c1.layer &&
-       Math.abs(c2.x - c1.x) < 55 &&
-       Math.abs(c2.y - c1.y) < 55){
-      return true;
-    }
-  }
-  return false;
+  return cards.some(c2 =>
+    c2.id !== c1.id &&
+    c2.state === 0 &&
+    c2.layer > c1.layer &&
+    Math.abs(c2.x - c1.x) < 55 &&
+    Math.abs(c2.y - c1.y) < 55
+  );
 }
 
 /* ===== 渲染 ===== */
 function render(){
-  gameBox.innerHTML='';
+  gameBox.innerHTML = "";
 
   cards.forEach(c=>{
-    if(c.state!==0) return;
+    if(c.state !== 0) return;
 
     const covered = isCovered(c);
 
-    const div=document.createElement('div');
-    div.className='card'+(covered?' covered':'');
+    const div = document.createElement("div");
+    div.className = "card" + (covered ? " covered" : "");
 
-    div.style.left=c.x+'px';
-    div.style.top=c.y+'px';
-    div.style.zIndex=c.layer;
+    div.style.left = c.x + "px";
+    div.style.top = c.y + "px";
+    div.style.zIndex = c.layer;
 
-    div.innerHTML=`<img src="images111/${c.img}">`;
+    div.innerHTML = `<img src="images111/${c.img}">`;
 
-    div.onclick=()=>{
+    div.onclick = () => {
+
       if(covered) return;
 
-      if(slot.length<7){
-        c.state=1;
-        slot.push(c.img);
-        render();
-      }
+      c.state = 1;
+      slot.push(c.img);
 
+      checkMatch();
+      render();
       checkWin();
     };
 
     gameBox.appendChild(div);
   });
 
-  slotBox.innerHTML = slot.map(i=>`<img class="slot-img" src="images111/${i}">`).join('');
+  slotBox.innerHTML = slot.map(i=>`<img class="slot-img" src="images111/${i}">`).join("");
 }
 
-/* ===== 胜利 ===== */
-function checkWin(){
-  if(cards.every(c=>c.state!==0)){
-    if(level===1){
-      setTimeout(()=>initLevel2(),1000);
-    } else {
-      alert("通关！");
-      location.reload();
+/* ===== ⭐ 三消修复（重点修bug）===== */
+function checkMatch(){
+
+  let count = {};
+
+  slot.forEach(i=>{
+    count[i] = (count[i] || 0) + 1;
+  });
+
+  for(let k in count){
+    if(count[k] >= 3){
+
+      slot = slot.filter(i => i !== k);
+
+      cards.forEach(c=>{
+        if(c.img === k && c.state === 1){
+          c.state = 2;
+        }
+      });
     }
   }
 }
 
-/* ===== 计时器 ===== */
-function startTimer(){
-  clearInterval(timer);
-
-  timer = setInterval(()=>{
-    timeLeft--;
-
-    bar.style.width = (timeLeft/(level===1?180:120))*100 + "%";
-
-    if(timeLeft<=0){
-      clearInterval(timer);
-      alert("失败！");
-      location.reload();
+/* ===== 胜利 ===== */
+function checkWin(){
+  if(cards.every(c=>c.state !== 0)){
+    if(level === 1){
+      setTimeout(()=>alert("第一关完成！去挑战第二关！"),300);
+    } else {
+      setTimeout(()=>alert("通关啦！"),300);
     }
-  },1000);
+  }
 }
 
 </script>
