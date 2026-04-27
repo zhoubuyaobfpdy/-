@@ -306,11 +306,11 @@ function checkMatch() {
 
 function checkEnd() {
     if(slot.length >= 7) {
-        alert("可可跑走啦！");
+        alert("啊哦...可可跑走啦！再试一次吧！");
         location.reload();
     }
     if(cards.every(c => c.state === 2)) {
-        alert("成功！");
+        alert("你成功抓住了可可！一起做巧克力吧！");
         location.reload();
     }
 }
