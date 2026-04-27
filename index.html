@@ -1,91 +1,137 @@
 <!DOCTYPE html>
 <html>
+
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>可了个嫑·困难版</title>
+
 <style>
+body {
+  margin: 0;
+  background: #5c4033;
+}
+
+/* 背景图（完整显示） */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url('bg.jpg') no-repeat center center;
+  background-size: contain;
+  opacity: 0.9;
+  z-index: -1;
+}
+
+/* 手机框（电脑用） */
+#phone {
+  width: 360px;
+  height: 640px;
+  margin: auto;
+
+  position: absolute;
+  top: 0; bottom: 0;
+  left: 0; right: 0;
+
+  background: rgba(0,0,0,0.3);
+  border-radius: 25px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 标题 */
+h2 {
+  color: white;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.5);
+}
+
+/* 游戏区域 */
 #game-box {
   position: relative;
-  width: 90vw;
-max-width: 420px;
+  width: 320px;
+  height: 420px;
 
-height: 75vh;
-max-height: 520px;
-
-margin: 20px auto;
-
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255,255,255,0.15);
   backdrop-filter: blur(6px);
 
   border-radius: 20px;
   border: 2px solid rgba(255,255,255,0.3);
 
   box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-
-  transition: transform 0.3s;
 }
 
-#game-box:hover {
-  transform: scale(1.02);
-}
+/* 卡牌 */
 .card {
   position: absolute;
   width: 60px;
   height: 60px;
-  background: linear-gradient(145deg, #d2b48c, #a67c52); /* 棕色渐变 */
+
+  background: linear-gradient(145deg, #d2b48c, #a67c52);
   border-radius: 10px;
   cursor: pointer;
 
   box-shadow: 
     4px 4px 8px rgba(0,0,0,0.3),
-    -2px -2px 6px rgba(255,255,255,0.3); /* 立体感 */
+    -2px -2px 6px rgba(255,255,255,0.3);
 
-  transition: transform 0.15s, box-shadow 0.15s;
+  transition: transform 0.15s;
 }
-.card img { width: 100%; height: 100%; }
-.covered { filter: brightness(0.5); cursor: not-allowed; }
+
+.card img {
+  width: 100%;
+  height: 100%;
+}
 
 .card:active {
   transform: scale(0.9);
-  box-shadow: 2px 2px 4px rgba(0,0,0,0.4);
 }
-  
+
+.covered {
+  filter: brightness(0.5);
+  cursor: not-allowed;
+}
+
+/* 槽位 */
 #slot {
-  width: 380px;
+  width: 320px;
   height: 80px;
   background: #333;
-  margin: 10px auto;
+  margin-top: 10px;
   display: flex;
   align-items: center;
 }
+
 .slot-img {
   width: 45px;
   height: 45px;
   margin: 2px;
 }
-body {
-  margin: 0;
 
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-
-  min-height: 100vh;
-
-  background: url('bg.jpg') no-repeat center center fixed;
-  background-size: cover;
+/* 手机优化 */
+@media (max-width: 768px) {
+  #phone {
+    width: 100%;
+    height: 100vh;
+    border-radius: 0;
+  }
 }
-  
 </style>
 </head>
 
 <body>
-<h2>可了个嫑·困难版</h2>
 
-<div id="game-box"></div>
-<div id="slot"></div>
+<div id="phone">
+  <h2>可了个嫑·困难版</h2>
+  <div id="game-box"></div>
+  <div id="slot"></div>
+</div>
 
 <script>
 const gameBox = document.getElementById('game-box');
@@ -99,7 +145,6 @@ let slot = [];
 function init() {
     let temp = [];
 
-    // 每种6张（更难）
     cardFiles.forEach(file => {
         for(let i=0; i<6; i++) temp.push(file);
     });
@@ -109,9 +154,9 @@ function init() {
     cards = temp.map((img, i) => ({
         id: i,
         img: img,
-        x: Math.random() * 320,
-        y: Math.random() * 420,
-        layer: Math.floor(Math.random() * 4), // 多层
+        x: Math.random() * (gameBox.clientWidth - 60),
+        y: Math.random() * (gameBox.clientHeight - 60),
+        layer: Math.floor(Math.random() * 4),
         state: 0
     }));
 
@@ -122,7 +167,6 @@ function isCovered(c1) {
     for(let c2 of cards) {
         if(c2.id === c1.id || c2.state !== 0) continue;
 
-        // 更高层 & 重叠
         if(c2.layer > c1.layer &&
            c2.x < c1.x + 60 &&
            c2.x + 60 > c1.x &&
@@ -196,5 +240,6 @@ function checkEnd() {
 
 init();
 </script>
+
 </body>
 </html>
