@@ -8,7 +8,7 @@
 
 <style>
 
-/* ================= 背景与居中 ================= */
+/* ================= 背景 ================= */
 body {
   margin: 0;
   height: 100vh;
@@ -16,26 +16,24 @@ body {
   justify-content: center;
   align-items: center;
   background: #5c4033;
-  overflow: hidden;
 }
 
-/* ⭐ 背景不裁切 */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
   background: url('bg.jpg') no-repeat center center;
   background-size: contain;
-  background-color: #5c4033;
   z-index: -1;
-  opacity: 0.95;
 }
 
-/* ================= 手机容器 ================= */
+/* ================= 自适应核心（重点） ================= */
 #phone {
-  width: 360px;
-  height: 640px;
+  width: 80vw;
+  max-width: 420px;
 
+  aspect-ratio: 9/16; /* ⭐ 保持比例 */
+  
   background: rgba(0,0,0,0.35);
   border-radius: 25px;
 
@@ -45,25 +43,57 @@ body::before {
   justify-content: center;
 }
 
+/* iPad / 大屏优化 */
+@media (min-width: 768px) {
+  #phone {
+    width: 60vw;
+    max-width: 500px;
+  }
+}
+
 /* 标题 */
 h2 {
   color: white;
   margin: 6px 0;
 }
 
-/* ================= 控制区 ================= */
-#controls {
+/* ================= 控制 ================= */
+
+/* 电脑 */
+#controls-desktop {
   color: white;
   font-size: 12px;
-  margin-bottom: 8px;
-  width: 90%;
+}
+
+/* 手机 */
+#controls-mobile {
+  display: none;
+}
+
+/* 手机启用按钮 */
+@media (max-width: 768px) {
+  #controls-desktop {
+    display: none;
+  }
+  #controls-mobile {
+    display: block;
+  }
+}
+
+button {
+  margin: 4px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: none;
+  background: rgba(255,255,255,0.2);
+  color: white;
 }
 
 /* ================= 游戏区 ================= */
 #game-box {
   position: relative;
-  width: 320px;
-  height: 420px;
+  width: 85%;
+  aspect-ratio: 3/4;
 
   background: rgba(255,255,255,0.12);
   border-radius: 18px;
@@ -79,7 +109,6 @@ h2 {
 
   border-radius: 12px;
   overflow: hidden;
-
   background: #a67c52;
 }
 
@@ -96,8 +125,8 @@ h2 {
 
 /* ================= 槽位 ================= */
 #slot {
-  width: 320px;
-  height: 85px;
+  width: 85%;
+  height: 80px;
 
   margin-top: 10px;
 
@@ -116,14 +145,6 @@ h2 {
   border-radius: 8px;
 }
 
-/* ================= 响应式 ================= */
-@media (max-width: 768px) {
-  #phone {
-    width: 95vw;
-    height: 95vh;
-  }
-}
-
 </style>
 </head>
 
@@ -138,17 +159,19 @@ h2 {
 
 <h2>可了个嫑·困难版</h2>
 
-<!-- 控制 -->
-<div id="controls">
-🎵 音乐：
-<input type="range" min="0" max="1" step="0.01"
+<!-- 💻 -->
+<div id="controls-desktop">
+🎵 <input type="range" min="0" max="1" step="0.01"
 value="0.4" oninput="bgm.volume=this.value">
-
 <br>
-
-🔊 音效：
-<input type="range" min="0" max="1" step="0.01"
+🔊 <input type="range" min="0" max="1" step="0.01"
 value="0.6" oninput="sfxVolume=this.value">
+</div>
+
+<!-- 📱 -->
+<div id="controls-mobile">
+<button onclick="toggleMusic()">🎵 音乐</button>
+<button onclick="toggleSfx()">🔊 音效</button>
 </div>
 
 <div id="game-box"></div>
@@ -167,11 +190,10 @@ const sfx2 = document.getElementById('sfx2');
 
 let musicStarted = false;
 let sfxVolume = 0.6;
+let musicOn = true;
+let sfxOn = true;
 
-let slot = [];
-let cards = [];
-
-/* ================= 音乐 ================= */
+/* 音乐 */
 function startMusic(){
   if(musicStarted) return;
   bgm.volume = 0.4;
@@ -179,20 +201,39 @@ function startMusic(){
   musicStarted = true;
 }
 
-/* ================= 音效 ================= */
+function toggleMusic(){
+  musicOn = !musicOn;
+  if(musicOn){
+    bgm.play().catch(()=>{});
+  }else{
+    bgm.pause();
+  }
+}
+
+function toggleSfx(){
+  sfxOn = !sfxOn;
+}
+
+/* 音效（无延迟版） */
 function playSfx(){
+  if(!sfxOn) return;
   const s = Math.random() < 0.5 ? sfx1 : sfx2;
   s.currentTime = 0;
   s.volume = sfxVolume;
   s.play().catch(()=>{});
 }
 
-/* ================= 初始化 ================= */
+/* 卡牌 */
 const cardFiles = ['a.jpg','b.jpg','c.jpg','d.jpg','e.jpg','f.jpg','g.jpg','h.jpg','i.jpg'];
 
-function init(){
-  let temp = [];
+let cards = [];
+let slot = [];
 
+function init(){
+
+  let temp=[];
+
+  /* ⭐ 难度设计：分组 + 混乱 */
   cardFiles.forEach(f=>{
     for(let i=0;i<6;i++) temp.push(f);
   });
@@ -202,8 +243,8 @@ function init(){
   cards = temp.map((img,i)=>({
     id:i,
     img,
-    x:Math.random()*250,
-    y:Math.random()*350,
+    x:Math.random()*240,
+    y:Math.random()*340,
     layer:Math.floor(Math.random()*6),
     state:0
   }));
@@ -211,21 +252,21 @@ function init(){
   render();
 }
 
-/* ================= 遮挡判断 ================= */
+/* 遮挡 */
 function isCovered(c1){
   for(let c2 of cards){
     if(c2.id===c1.id || c2.state!==0) continue;
 
     if(c2.layer > c1.layer &&
-       Math.abs(c2.x - c1.x) < 55 &&
-       Math.abs(c2.y - c1.y) < 55){
+       Math.abs(c2.x-c1.x)<55 &&
+       Math.abs(c2.y-c1.y)<55){
       return true;
     }
   }
   return false;
 }
 
-/* ================= 渲染 ================= */
+/* 渲染 */
 function render(){
   gameBox.innerHTML='';
 
@@ -235,7 +276,7 @@ function render(){
     const covered = isCovered(c);
 
     const div=document.createElement('div');
-    div.className='card' + (covered ? ' covered' : '');
+    div.className='card'+(covered?' covered':'');
 
     div.style.left=c.x+'px';
     div.style.top=c.y+'px';
@@ -250,8 +291,8 @@ function render(){
 
       if(covered) return;
 
-      if(slot.length < 7){
-        c.state = 1;
+      if(slot.length<7){
+        c.state=1;
         slot.push(c.img);
 
         checkMatch();
@@ -263,12 +304,12 @@ function render(){
     gameBox.appendChild(div);
   });
 
-  slotBox.innerHTML = slot.map(i=>`
-    <img class="slot-img" src="images111/${i}">
-  `).join('');
+  slotBox.innerHTML = slot.map(i=>
+    `<img class="slot-img" src="images111/${i}">`
+  ).join('');
 }
 
-/* ================= 消除 ================= */
+/* 消除 */
 function checkMatch(){
   const count={};
 
@@ -277,9 +318,8 @@ function checkMatch(){
   });
 
   for(let img in count){
-    if(count[img] >= 3){
-      slot = slot.filter(i => i !== img);
-
+    if(count[img]>=3){
+      slot=slot.filter(i=>i!==img);
       cards.forEach(c=>{
         if(c.img===img && c.state===1){
           c.state=2;
@@ -289,10 +329,10 @@ function checkMatch(){
   }
 }
 
-/* ================= 结束 ================= */
+/* 结束 */
 function checkEnd(){
 
-  if(slot.length >= 7){
+  if(slot.length>=7){
     setTimeout(()=>{
       alert("啊哦...可可跑走啦！再试一次吧！");
       location.reload();
