@@ -28,11 +28,10 @@ body::before {
   z-index: -1;
 }
 
-/* ===== 容器 ===== */
+/* ===== 主容器 ===== */
 #phone {
   width: min(90vw, 420px);
-  aspect-ratio: 9/16;
-
+  height: min(95vh, 820px); /* ⭐ 防止iPad被拉长 */
   background: rgba(0,0,0,0.35);
   border-radius: 20px;
 
@@ -41,6 +40,7 @@ body::before {
   align-items: center;
 
   padding: 10px;
+  box-sizing: border-box;
 }
 
 h2 {
@@ -74,21 +74,24 @@ button {
   background: rgba(255,255,255,0.2);
 }
 
-/* ===== 游戏区域（✔修正高度）===== */
+/* ===== 游戏区域（⭐核心修复）===== */
 #game-box {
   position: relative;
   width: 100%;
 
-  /* ⭐ 关键：不再撑太长 */
-  height: 60%;
+  /* ⭐ 固定高度（解决iPad拉伸问题） */
+  height: 320px;
 
   background: rgba(255,255,255,0.08);
   border-radius: 15px;
 
   overflow: hidden;
+
+  /* ⭐ 防止触摸卡顿 */
+  touch-action: manipulation;
 }
 
-/* ===== 卡牌（✔手感优化重点）===== */
+/* ===== 卡牌（手感优化但不破坏难度）===== */
 .card {
   position: absolute;
   width: 60px;
@@ -100,18 +103,18 @@ button {
 
   cursor: pointer;
 
-  /* ⭐ 更“跟手”的动画 */
+  /* ⭐ 更顺滑 */
   transition: transform 0.08s ease, filter 0.08s ease;
 }
 
-/* ⭐ hover：只“轻轻抬一下”，不放大 */
+/* ⭐ hover：轻微浮起（不放大！） */
 .card:hover {
   transform: translateY(-2px);
   filter: brightness(1.08);
   z-index: 10;
 }
 
-/* ⭐ 点击瞬间：按压感（很关键） */
+/* ⭐ 点击反馈（关键手感） */
 .card:active {
   transform: scale(0.92);
 }
@@ -153,7 +156,8 @@ button {
 </style>
 </head>
 
-<body onclick="startMusic()">
+<!-- ⭐ iOS关键修复：touchstart -->
+<body onclick="startMusic()" ontouchstart="startMusic()">
 
 <audio id="bgm" src="music.mp3" loop preload="auto"></audio>
 <audio id="sfx1" src="soundeffect_Dadadada.mp3" preload="auto"></audio>
@@ -202,10 +206,22 @@ let sfxOn = true;
 let cards = [];
 let slot = [];
 
+/* ===== ⭐ 音乐修复（iOS稳定版）===== */
 function startMusic(){
   if(musicStarted) return;
+
   bgm.volume = 0.4;
-  bgm.play().catch(()=>{});
+
+  const p = bgm.play();
+
+  if(p !== undefined){
+    p.catch(()=> {
+      setTimeout(()=> {
+        bgm.play().catch(()=>{});
+      }, 300);
+    });
+  }
+
   musicStarted = true;
 }
 
@@ -258,7 +274,7 @@ function init(){
   },100);
 }
 
-/* ===== 遮挡判断 ===== */
+/* ===== 遮挡逻辑 ===== */
 function isCovered(c1){
   for(let c2 of cards){
     if(c2.id===c1.id || c2.state!==0) continue;
@@ -314,7 +330,7 @@ function render(){
   ).join('');
 }
 
-/* ===== 消除逻辑 ===== */
+/* ===== 消除 ===== */
 function checkMatch(){
   const count={};
 
