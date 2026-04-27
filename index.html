@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
 
@@ -16,10 +17,7 @@ body {
 body::before {
   content: "";
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   background: url('bg.jpg') no-repeat center center;
   background-size: contain;
   opacity: 0.9;
@@ -30,11 +28,9 @@ body::before {
 #phone {
   width: 360px;
   height: 640px;
-
-  position: absolute;
-  top: 0; bottom: 0;
-  left: 0; right: 0;
   margin: auto;
+  position: absolute;
+  inset: 0;
 
   background: rgba(0,0,0,0.3);
   border-radius: 25px;
@@ -43,24 +39,12 @@ body::before {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
 }
 
 /* 标题 */
 h2 {
   color: white;
   text-shadow: 0 2px 6px rgba(0,0,0,0.5);
-}
-
-/* 控制区 */
-#controls {
-  color: white;
-  font-size: 12px;
-  margin-bottom: 10px;
-}
-
-#controls div {
-  margin: 5px 0;
 }
 
 /* 游戏区 */
@@ -74,8 +58,6 @@ h2 {
 
   border-radius: 20px;
   border: 2px solid rgba(255,255,255,0.3);
-
-  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
 }
 
 /* 卡牌 */
@@ -88,11 +70,9 @@ h2 {
   border-radius: 10px;
   cursor: pointer;
 
-  box-shadow: 
-    4px 4px 8px rgba(0,0,0,0.3),
-    -2px -2px 6px rgba(255,255,255,0.3);
+  box-shadow: 4px 4px 8px rgba(0,0,0,0.3),
+              -2px -2px 6px rgba(255,255,255,0.3);
 
-  transition: transform 0.15s;
   overflow: hidden;
 }
 
@@ -126,44 +106,27 @@ h2 {
   width: 45px;
   height: 45px;
   margin: 2px;
-  object-fit: cover;
 }
 
-/* 手机适配 */
-@media (max-width: 768px) {
-  #phone {
-    width: 100%;
-    height: 100vh;
-    border-radius: 0;
-  }
+/* 控制 */
+#controls {
+  color: white;
+  font-size: 12px;
+  margin-bottom: 8px;
 }
 </style>
 </head>
 
 <body onclick="startMusic()">
 
-<!-- 🎵 音乐 -->
-<audio id="bgm" src="music.mp3" loop></audio>
+<!-- 🎵 音频（关键：预加载 + 复用） -->
+<audio id="bgm" src="music.mp3" loop preload="auto"></audio>
+
+<audio id="sfx1" src="soundeffect_Dadadada.mp3" preload="auto"></audio>
+<audio id="sfx2" src="soundeffectdrrro.mp3" preload="auto"></audio>
 
 <div id="phone">
   <h2>可了个嫑·困难版</h2>
-
-  <!-- 🎛 控制 -->
-  <div id="controls">
-
-    <div>
-      🎵 音乐
-      <input type="range" min="0" max="1" step="0.01"
-        value="0.4" onchange="setMusicVolume(this.value)">
-    </div>
-
-    <div>
-      🔊 音效
-      <input type="range" min="0" max="1" step="0.01"
-        value="0.6" onchange="setSfxVolume(this.value)">
-    </div>
-
-  </div>
 
   <div id="game-box"></div>
   <div id="slot"></div>
@@ -172,41 +135,36 @@ h2 {
 <script>
 const gameBox = document.getElementById('game-box');
 const slotBox = document.getElementById('slot');
+
 const bgm = document.getElementById('bgm');
+const sfx1 = document.getElementById('sfx1');
+const sfx2 = document.getElementById('sfx2');
 
-/* 🎚 音量 */
-let musicVolume = 0.4;
-let sfxVolume = 0.6;
-
-/* 状态 */
 let musicStarted = false;
 
-/* 🎵 开始音乐（iOS必须用户点击触发） */
+/* 🎵 音乐启动（必须用户点击触发） */
 function startMusic() {
     if (musicStarted) return;
-
-    bgm.volume = musicVolume;
+    bgm.volume = 0.4;
     bgm.play().catch(()=>{});
-
     musicStarted = true;
 }
 
-/* 🎚 音量控制 */
-function setMusicVolume(v) {
-    musicVolume = v;
-    bgm.volume = musicVolume;
+/* 🔊 超关键：无延迟音效播放 */
+function playSfx() {
+    const sound = Math.random() < 0.5 ? sfx1 : sfx2;
+    sound.currentTime = 0;   // ⭐核心：重置
+    sound.volume = 0.6;
+    sound.play().catch(()=>{});
 }
 
-function setSfxVolume(v) {
-    sfxVolume = v;
-}
-
-/* 🎮 卡牌 */
+/* 🎮 卡牌数据 */
 const cardFiles = ['a.jpg','b.jpg','c.jpg','d.jpg','e.jpg','f.jpg','g.jpg','h.jpg','i.jpg'];
 
 let cards = [];
 let slot = [];
 
+/* 初始化 */
 function init() {
     let temp = [];
 
@@ -228,6 +186,7 @@ function init() {
     render();
 }
 
+/* 是否被盖住 */
 function isCovered(c1) {
     for(let c2 of cards) {
         if(c2.id === c1.id || c2.state !== 0) continue;
@@ -243,6 +202,7 @@ function isCovered(c1) {
     return false;
 }
 
+/* 渲染 */
 function render() {
     gameBox.innerHTML = '';
 
@@ -262,15 +222,7 @@ function render() {
         div.onclick = () => {
 
             startMusic();
-
-            /* 🔊 音效 */
-            const file = Math.random() < 0.5
-                ? "soundeffect_Dadadada.mp3"
-                : "soundeffectdrrro.mp3";
-
-            const sound = new Audio(file);
-            sound.volume = sfxVolume;
-            sound.play().catch(()=>{});
+            playSfx();   // ⭐音效
 
             if(!covered && slot.length < 7) {
                 c.state = 1;
@@ -290,6 +242,7 @@ function render() {
     ).join('');
 }
 
+/* 消除 */
 function checkMatch() {
     const count = {};
     slot.forEach(i => count[i] = (count[i] || 0) + 1);
@@ -304,7 +257,9 @@ function checkMatch() {
     }
 }
 
-function checkEnd() {
+/* 结束 */
+
+  function checkEnd() {
     if(slot.length >= 7) {
         alert("啊哦...可可跑走啦！再试一次吧！");
         location.reload();
