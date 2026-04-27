@@ -7,7 +7,6 @@
 
 <style>
 
-/* ===== 基础背景 ===== */
 body {
   margin: 0;
   height: 100vh;
@@ -145,7 +144,10 @@ input[type="range"] {
 
 <body onclick="startMusic()" ontouchstart="startMusic()">
 
+<!-- ===== 音频 ===== -->
 <audio id="bgm" src="music.mp3" loop></audio>
+<audio id="sfx1" src="soundeffect_Dadadada.mp3" preload="auto"></audio>
+<audio id="sfx2" src="soundeffectdrrro.mp3" preload="auto"></audio>
 
 <div id="phone">
 
@@ -169,7 +171,10 @@ const gameBox = document.getElementById('game-box');
 const slotBox = document.getElementById('slot');
 const bar = document.getElementById('bar-inner');
 const title = document.getElementById('title');
+
 const bgm = document.getElementById('bgm');
+const sfx1 = document.getElementById('sfx1');
+const sfx2 = document.getElementById('sfx2');
 
 let level = 1;
 let time = 120;
@@ -184,6 +189,14 @@ let sfxVolume = 0.6;
 function startMusic(){
   bgm.volume = 0.4;
   bgm.play().catch(()=>{});
+}
+
+/* ===== 音效 ===== */
+function playSfx(){
+  const s = Math.random() < 0.5 ? sfx1 : sfx2;
+  s.currentTime = 0;
+  s.volume = sfxVolume;
+  s.play().catch(()=>{});
 }
 
 /* ===== 开始关卡 ===== */
@@ -224,23 +237,20 @@ function fail(){
   location.reload();
 }
 
-/* ===== ⭐核心：保证三连 + 54张 ===== */
+/* ===== ⭐生成（修复三连+54张）===== */
 function generate(){
 
   const files = ['a.jpg','b.jpg','c.jpg','d.jpg','e.jpg','f.jpg','g.jpg','h.jpg','i.jpg'];
 
   let temp = [];
 
-  let groups = level === 1 ? 4 : 18; // ⭐12 / 54
+  let groups = level === 1 ? 4 : 18; // 12 / 54
 
   for(let i=0;i<groups;i++){
 
     let img = files[Math.floor(Math.random()*files.length)];
 
-    // ⭐严格3个
-    temp.push(img);
-    temp.push(img);
-    temp.push(img);
+    temp.push(img, img, img); // ⭐严格三连
   }
 
   temp.sort(()=>Math.random()-0.5);
@@ -254,11 +264,7 @@ function generate(){
     img,
     x:Math.random()*maxX,
     y:Math.random()*maxY,
-
-    layer: level === 1
-      ? Math.floor(Math.random()*2)
-      : Math.floor(Math.random()*6),
-
+    layer: level === 1 ? Math.floor(Math.random()*2) : Math.floor(Math.random()*6),
     state:0
   }));
 
@@ -297,12 +303,13 @@ function render(){
 
     div.onclick = ()=>{
 
+      playSfx(); // ⭐音效恢复
+
       if(covered) return;
 
       c.state = 1;
       slot.push(c.img);
 
-      // ⭐7槽失败
       if(slot.length > 7){
         fail();
         return;
